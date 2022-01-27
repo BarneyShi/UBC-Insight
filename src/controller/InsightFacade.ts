@@ -13,7 +13,12 @@ import {
  *
  */
 export default class InsightFacade implements IInsightFacade {
+	// let myMap = new Map<string, number>();
+	private dataset: Map<string, InsightDataset>;
+
 	constructor() {
+		this.dataset = new Map<string, any>();
+		// let myMap = new Map<string, number>();
 		console.log("InsightFacadeImpl::init()");
 	}
 
