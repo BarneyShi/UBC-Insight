@@ -48,11 +48,16 @@ export default class InsightFacade implements IInsightFacade {
 			zips.forEach((relativePath, file) => {
 				if (relativePath.match(/^courses/g) !== null) {
 					const promise = file.async("text").then(async (data) => {
-						const jsons = JSON.parse(data);
-						this.dataset.get(id)?.push(...jsons.result);
-						// Persit to ./data
-						const jsonPath = `./data/${id}/${relativePath}.json`;
-						await fs.outputJSON(jsonPath, jsons);
+						let jsons;
+						try {
+							jsons = JSON.parse(data);
+							this.dataset.get(id)?.push(...jsons.result);
+							// Persit to ./data
+							const jsonPath = `./data/${id}/${relativePath}.json`;
+							await fs.outputJSON(jsonPath, jsons);
+						} catch (error) {
+							console.log("Skip over this invalid json");
+						}
 					});
 					promises.push(promise);
 				}
@@ -62,6 +67,9 @@ export default class InsightFacade implements IInsightFacade {
 				if (fs.existsSync("./data")) {
 					const filesInDataDir = fs.readdirSync("./data");
 					ids.push(...filesInDataDir);
+				}
+				if (this.dataset.get(id)?.length === 0) {
+					throw new InsightError("No valid sections in dataset!");
 				}
 				return ids;
 			});
