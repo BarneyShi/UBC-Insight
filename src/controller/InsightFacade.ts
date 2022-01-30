@@ -8,6 +8,7 @@ import {
 } from "./IInsightFacade";
 import Section from "../model/Section";
 import JSZip from "jszip";
+import * as fs from "fs-extra";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -23,33 +24,50 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		if (id.match(/_/g) !== null || id.match(/^\s*$/g) !== null) {
-			throw new InsightError("Invalid id!");
-		}
-		if (kind === InsightDatasetKind.Rooms) {
-			throw new InsightError("Kind must be Course!");
-		}
-
-		// Add dataset to Map() & /data folder;
-		this.dataset.set(id, []);
-		const jsZip = new JSZip();
-		const zips = await jsZip.loadAsync(content, {base64: true});
-		let promises: Array<Promise<void>> = [];
-		let ids: string[] = [];
-		zips.forEach((relativePath, file) => {
-			if (relativePath.match(/^courses/g) !== null) {
-				const promise = file.async("text").then((data) => {
-					this.dataset.get(id)?.push(...JSON.parse(data).result);
-				});
-				promises.push(promise);
+		try {
+			if (
+				id.match(/_/g) !== null ||
+				id.match(/^\s*$/g) !== null ||
+				kind === InsightDatasetKind.Rooms ||
+				(fs.existsSync("./data") && fs.readdirSync("./data").includes(id))
+			) {
+				throw new Error("Invalid id or kind.");
 			}
-		});
 
-		// Wait till all `file.async` have resolved in `forEach()`.
-		Promise.allSettled(promises).then(() => {
-			console.log("Contains" + this.dataset.get(id)?.length + "sections.");
-		});
-		return Promise.reject("Not implemented");
+			this.dataset.set(id, []);
+			const jsZip = new JSZip();
+			let zips = await jsZip.loadAsync(content, {base64: true});
+
+			// Check if root dir has 'courses/'
+			if (!zips.files["courses/"]) {
+				throw new Error("Root dir doesn't have a courses/ folder.");
+			}
+			// Add dataset to Map() and /data folder.
+			let promises: Array<Promise<void>> = [];
+			let ids: string[] = [];
+			zips.forEach((relativePath, file) => {
+				if (relativePath.match(/^courses/g) !== null) {
+					const promise = file.async("text").then(async (data) => {
+						const jsons = JSON.parse(data);
+						this.dataset.get(id)?.push(...jsons.result);
+						// Persit to ./data
+						const jsonPath = `./data/${id}/${relativePath}.json`;
+						await fs.outputJSON(jsonPath, jsons);
+					});
+					promises.push(promise);
+				}
+			});
+			// Wait till all `file.async` have resolved in `forEach()`.
+			return Promise.allSettled(promises).then(() => {
+				if (fs.existsSync("./data")) {
+					const filesInDataDir = fs.readdirSync("./data");
+					ids.push(...filesInDataDir);
+				}
+				return ids;
+			});
+		} catch (error) {
+			throw new InsightError(error as string);
+		}
 	}
 
 	public removeDataset(id: string): Promise<string> {
