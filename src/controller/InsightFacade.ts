@@ -79,7 +79,15 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public removeDataset(id: string): Promise<string> {
-		return Promise.reject("Not implemented.");
+		// Handle invalid id & not found error;
+		if (id.match(/_/g) !== null || id.match(/^\s*$/g) !== null) {
+			throw new InsightError("Invalid id.");
+		}
+		if (!fs.existsSync("./data") || (fs.existsSync("./data") && !fs.readdirSync("./data").includes(id))) {
+			throw new NotFoundError("Dataset not found.");
+		}
+		this.dataset.delete(id);
+		return fs.remove(`./data/${id}`).then(() => id);
 	}
 
 	public performQuery(query: unknown): Promise<InsightResult[]> {
@@ -87,6 +95,14 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public listDatasets(): Promise<InsightDataset[]> {
-		return Promise.reject("Not implemented.");
+		if (!fs.existsSync("./data")) {
+			return Promise.resolve([]);
+		}
+		let res: InsightDataset[] = [];
+		for (const [key, val] of this.dataset) {
+			const d: InsightDataset = {id: key, kind: InsightDatasetKind.Courses, numRows: val.length};
+			res.push(d);
+		}
+		return Promise.resolve(res);
 	}
 }
