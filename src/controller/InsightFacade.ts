@@ -51,7 +51,7 @@ export default class InsightFacade implements IInsightFacade {
 						let jsons;
 						try {
 							jsons = JSON.parse(data);
-							this.dataset.get(id)?.push(...jsons.result);
+							this.dataset.get(id)?.push(...jsons.result.map((e: any) => this.setSection(e)));
 							// Persit to ./data
 							const jsonPath = `./data/${id}/${relativePath}.json`;
 							await fs.outputJSON(jsonPath, jsons);
@@ -104,5 +104,21 @@ export default class InsightFacade implements IInsightFacade {
 			res.push(d);
 		}
 		return Promise.resolve(res);
+	}
+
+	private setSection(section: {[key: string]: any}): Section {
+		const s: Section = new Section(
+			section.Subject,
+			section.Course,
+			section.Avg,
+			section.Professor,
+			section.Title,
+			section.Pass,
+			section.Fail,
+			section.Audit,
+			section.id,
+			section.Year
+		);
+		return s;
 	}
 }
