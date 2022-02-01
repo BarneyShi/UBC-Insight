@@ -1,0 +1,21 @@
+{
+  "title": "and must be non empty array",
+  "input": {
+    "WHERE": {
+      "AND": {
+
+        "courses_fail": 97
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "courses_dept",
+        "courses_id",
+        "courses_avg"
+      ]
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+
+}

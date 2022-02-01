@@ -1,0 +1,6 @@
+{
+  "title": "input is a string",
+  "input": "",
+  "errorExpected": true,
+  "expected": "InsightError"
+}

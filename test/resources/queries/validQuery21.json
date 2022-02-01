@@ -1,0 +1,30 @@
+{
+  "title": "asterisks at beginning",
+  "input": {
+    "WHERE": {
+      "AND": [
+        {
+          "GT": {
+            "courses_avg": 90
+          }
+        },
+        {
+          "IS": {
+            "courses_dept": "*en"
+          }
+        }
+      ]
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "courses_dept",
+        "courses_id",
+        "courses_avg"
+      ],
+      "ORDER": "courses_avg"
+    }
+  },
+  "errorExpected": false,
+  "expected": [{"courses_dept":"ceen","courses_id":"596","courses_avg":90.4},{"courses_dept":"ceen","courses_id":"596","courses_avg":91.25},{"courses_dept":"ceen","courses_id":"596","courses_avg":91.5},{"courses_dept":"ceen","courses_id":"596","courses_avg":92.33},{"courses_dept":"ceen","courses_id":"596","courses_avg":92.33},{"courses_dept":"ceen","courses_id":"596","courses_avg":92.61},{"courses_dept":"ceen","courses_id":"596","courses_avg":94.27}]
+
+}

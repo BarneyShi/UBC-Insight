@@ -1,4 +1,6 @@
 import {
+	IInsightFacade,
+	InsightDataset,
 	InsightDatasetKind,
 	InsightError,
 	InsightResult,
@@ -10,6 +12,7 @@ import * as fs from "fs-extra";
 
 import {folderTest} from "@ubccpsc310/folder-test";
 import {expect} from "chai";
+import {clearDisk, getContentFromArchives} from "../TestUtil";
 
 describe("InsightFacade", function () {
 	let insightFacade: InsightFacade;
@@ -110,5 +113,62 @@ describe("InsightFacade", function () {
 				},
 			}
 		);
+	});
+	describe("List Datasets", function () {
+		let facade: IInsightFacade = new InsightFacade();
+		let courses = getContentFromArchives("courses.zip");
+		beforeEach( function () {
+			clearDisk();
+			facade = new InsightFacade();
+		});
+
+		it("should list no datasets", function() {
+			return facade.listDatasets()
+				.then((insightDatasets) => {
+					expect(insightDatasets).to.deep.equal([]);
+				});
+		});
+
+		it ("should list one dataset", function() {
+			// add a dataset
+			return facade.addDataset("courses", courses, InsightDatasetKind.Courses)
+				.then((addedIds) => facade.listDatasets())
+				.then((insightDatasets) => {
+					expect(insightDatasets).to.deep.equal([{
+						id: "courses",
+						kind: InsightDatasetKind.Courses,
+						numRows: 64612,
+					}]);
+				});
+
+		});
+
+		it ("should list several datasets", function () {
+			return facade.addDataset("courses", courses, InsightDatasetKind.Courses)
+				.then(() => {
+					return facade.addDataset("courses-2", courses, InsightDatasetKind.Courses);
+				})
+				.then(() => {
+					return facade.listDatasets();
+				})
+				.then((insightDatasets) => {
+					const expectedDatasets: InsightDataset[] = [
+						{
+							id: "courses",
+							kind: InsightDatasetKind.Courses,
+							numRows: 64612
+						},
+						{
+							id: "courses-2",
+							kind: InsightDatasetKind.Courses,
+							numRows: 64612
+						}
+					];
+
+					expect(insightDatasets).to.be.an.instanceof(Array);
+					expect(insightDatasets).to.have.deep.members(expectedDatasets);
+					expect(insightDatasets).to.have.length(2);
+				});
+		});
 	});
 });

@@ -91,7 +91,27 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public performQuery(query: unknown): Promise<InsightResult[]> {
-		return Promise.reject("Not implemented.");
+		let result: InsightResult[] = [{incorrect: "result"}];
+		try {
+			if (typeof query === "object") {
+				if (query == null) {
+					throw new InsightError("query is null or undefined");
+				}
+				let queryCast: {[key: string]: any} = query as {[key: string]: any};
+				let where = queryCast["WHERE"];
+				let options = queryCast["OPTIONS"];
+				if (where == null || options == null) {
+					throw new InsightError("no WHERE or no OPTIONS");
+				}
+				// handling where clause
+				this.handleWhere(where);
+			} else {
+				throw new InsightError("invalid query type");
+			}
+			return Promise.resolve(result);
+		} catch (error) {
+			throw new InsightError(error as string);
+		}
 	}
 
 	public listDatasets(): Promise<InsightDataset[]> {
@@ -120,5 +140,74 @@ export default class InsightFacade implements IInsightFacade {
 			section.Year
 		);
 		return s;
+	}
+
+	private getSectionMfield(section: {[key: string]: any}, mfield: string): Section {
+		switch (mfield) {
+			case "avg": {
+				return section.avg;
+				break;
+			}
+			case "pass": {
+				return section.pass;
+				break;
+			}
+			case "fail": {
+				return section.fail;
+				break;
+			}
+			case "audit": {
+				return section.audit;
+				break;
+			}
+			case "year": {
+				return section.year;
+				break;
+			}
+			default: {
+				throw new InsightError("Invalid mfield");
+				break;
+			}
+
+		}
+	}
+
+	private handleWhere(clause: object): any {
+		let where: {[key: string]: any} = clause as {[key: string]: any};
+		let filter: any;
+		switch (Object.keys(where)[0]) {
+			case "AND": {
+				break;
+			}
+			case "OR": {
+				break;
+			}
+			case "LT": {
+				break;
+			}
+			case "GT": {
+				let mkey: string[] = Object.keys(where["GT"])[0].split("_");
+				let idstring: string = mkey[0];
+				let mfield: string = mkey[1];
+				let queriedData = this.dataset.get(idstring)?.filter((obj) => {
+					return this.getSectionMfield(obj,mfield) > where["GT"][Object.keys(where["GT"])[0]];
+				});
+				break;
+			}
+			case "EQ": {
+				break;
+			}
+			case "IS": {
+				break;
+			}
+			case "NOT": {
+				break;
+			}
+			default: {
+				throw new InsightError("invalid filter");
+				break;
+			}
+		}
+		return null;
 	}
 }

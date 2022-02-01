@@ -1,0 +1,16 @@
+{
+  "title": "missing key",
+  "input": {
+    "WHERE":{
+    },
+    "OPTIONS":{
+      "COLUMNS":[
+        "courses_",
+        "courses_"
+      ],
+      "ORDER":"courses_"
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

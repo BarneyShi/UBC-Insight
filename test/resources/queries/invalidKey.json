@@ -1,0 +1,16 @@
+{
+  "title": "not a valid key",
+  "input": {
+    "WHERE":{
+    },
+    "OPTIONS":{
+      "COLUMNS":[
+        "courses_hehe",
+        "courses_haha"
+      ],
+      "ORDER":"courses_hoho"
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

@@ -1,0 +1,16 @@
+{
+  "title": "invalid order type",
+  "input":  {
+    "WHERE":{
+    },
+    "OPTIONS":{
+      "COLUMNS":[
+        "courses_dept",
+        "courses_avg"
+      ],
+      "ORDER": ["courses_avg", "courses_dept"]
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

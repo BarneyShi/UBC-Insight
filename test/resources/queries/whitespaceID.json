@@ -1,0 +1,16 @@
+{
+  "title": "ID is all whitespace",
+  "input": {
+    "WHERE":{
+    },
+    "OPTIONS":{
+      "COLUMNS":[
+        "  _dept",
+        "  _avg"
+      ],
+      "ORDER":"  _avg"
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

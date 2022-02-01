@@ -1,0 +1,16 @@
+{
+  "title": "references a dataset not added",
+  "input": {
+    "WHERE":{
+    },
+    "OPTIONS":{
+      "COLUMNS":[
+        "unadded_dept",
+        "unadded_avg"
+      ],
+      "ORDER":"unadded_avg"
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

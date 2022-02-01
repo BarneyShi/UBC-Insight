@@ -1,0 +1,21 @@
+{
+  "title": "or must be non empty array",
+  "input": {
+    "WHERE": {
+      "OR": {
+
+        "courses_pass": 97
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "courses_dept",
+        "courses_id",
+        "courses_avg"
+      ]
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+
+}

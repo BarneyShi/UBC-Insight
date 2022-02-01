@@ -1,0 +1,35 @@
+{
+  "title": "contradictory and",
+  "input": {
+    "WHERE": {
+      "AND": [
+        {
+          "GT": {
+            "courses_avg": 90
+          }
+        },
+        {
+          "IS": {
+            "courses_dept": "adhe"
+          }
+        },
+        {
+          "LT": {
+            "courses_avg": 90
+          }
+        }
+      ]
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "courses_dept",
+        "courses_id",
+        "courses_avg"
+      ],
+      "ORDER": "courses_avg"
+    }
+  },
+  "errorExpected": false,
+  "expected": []
+
+}
