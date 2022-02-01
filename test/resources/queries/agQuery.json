@@ -1,0 +1,29 @@
+{
+	"title": "IS",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"courses_dept": "lfs"
+					}
+				},
+				{
+					"GT": {
+						"courses_avg": 89
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"courses_dept",
+				"courses_id",
+				"courses_avg"
+			],
+			"ORDER": "courses_avg"
+		}
+	},
+	"errorExpected": false,
+	"expected": [{"courses_dept":"lfs","courses_id":"252","courses_avg":89.3},{"courses_dept":"lfs","courses_id":"400","courses_avg":89.6},{"courses_dept":"lfs","courses_id":"400","courses_avg":89.6},{"courses_dept":"lfs","courses_id":"400","courses_avg":90.83},{"courses_dept":"lfs","courses_id":"400","courses_avg":90.83}]
+	}

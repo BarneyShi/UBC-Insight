@@ -9,6 +9,7 @@ import {
 import Section from "../model/Section";
 import JSZip from "jszip";
 import * as fs from "fs-extra";
+// import section from "../model/Section";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -100,11 +101,11 @@ export default class InsightFacade implements IInsightFacade {
 				let queryCast: {[key: string]: any} = query as {[key: string]: any};
 				let where = queryCast["WHERE"];
 				let options = queryCast["OPTIONS"];
-				if (where == null || options == null) {
-					throw new InsightError("no WHERE or no OPTIONS");
+				if (where == null || options == null || Object.keys(queryCast).length !== 2) {
+					throw new InsightError("incorrect first level keys");
 				}
 				// handling where clause
-				let queriedData: Section[] |undefined;
+				let queriedData: Section[] |undefined ;
 				queriedData = this.handleWhere(where);
 				result = this.handleOptions(options, queriedData);
 			} else {
@@ -187,7 +188,7 @@ export default class InsightFacade implements IInsightFacade {
 				break;
 			}
 			default: {
-				throw new InsightError("Invalid mfield");
+				throw new InsightError("Invalid field");
 				break;
 			}
 
@@ -196,34 +197,52 @@ export default class InsightFacade implements IInsightFacade {
 
 	private handleWhere(clause: object): Section[] | undefined {
 		let where: {[key: string]: any} = clause as {[key: string]: any};
-		let filter: any;
-		let queriedData: Section[] | undefined;
+		return this.dataset.get("courses")?.filter((obj) => {
+			return this.handleWhereOperation(where, obj);
+		});
+	}
+
+	private handleWhereOperation(where: {[p: string]: any}, obj: Section): boolean {
 		switch (Object.keys(where)[0]) {
 			case "AND": {
+				return this.handleWhereOperation(where["AND"][0], obj)
+					&& this.handleWhereOperation(where["AND"][1], obj);
 				break;
 			}
 			case "OR": {
+				return this.handleWhereOperation(where["OR"][0], obj)
+					|| this.handleWhereOperation(where["OR"][1], obj);
 				break;
 			}
 			case "LT": {
+				let mkey: string[] = Object.keys(where["LT"])[0].split("_");
+				let [idstring, mfield] = mkey;
+				return this.getSectionField(obj, mfield) < where["LT"][Object.keys(where["LT"])[0]];
 				break;
 			}
 			case "GT": {
 				let mkey: string[] = Object.keys(where["GT"])[0].split("_");
 				let idstring: string = mkey[0];
 				let mfield: string = mkey[1];
-				queriedData = this.dataset.get(idstring)?.filter((obj) => {
-					return this.getSectionField(obj,mfield) > where["GT"][Object.keys(where["GT"])[0]];
-				});
+				return this.getSectionField(obj, mfield) > where["GT"][Object.keys(where["GT"])[0]];
 				break;
 			}
 			case "EQ": {
+				let mkey: string[] = Object.keys(where["EQ"])[0].split("_");
+				let idstring: string = mkey[0];
+				let mfield: string = mkey[1];
+				return this.getSectionField(obj, mfield) === where["EQ"][Object.keys(where["EQ"])[0]];
 				break;
 			}
 			case "IS": {
+				let mkey: string[] = Object.keys(where["IS"])[0].split("_");
+				let idstring: string = mkey[0];
+				let mfield: string = mkey[1];
+				return this.getSectionField(obj, mfield) === where["IS"][Object.keys(where["IS"])[0]];
 				break;
 			}
 			case "NOT": {
+				return !this.handleWhereOperation(where["NOT"], obj);
 				break;
 			}
 			default: {
@@ -231,7 +250,14 @@ export default class InsightFacade implements IInsightFacade {
 				break;
 			}
 		}
-		return queriedData;
+		return false;
+	}
+
+	private handleWhereOp(where: {[p: string]: any}, op: string, obj: Section) {
+		let mkey: string[] = Object.keys(where[op])[0].split("_");
+		let idstring: string = mkey[0];
+		let mfield: string = mkey[1];
+		return this.getSectionField(obj, mfield) > where[op][Object.keys(where[op])[0]];
 	}
 
 	private handleOptions(clause: object, data: Section[] | undefined): InsightResult[] {
@@ -241,13 +267,7 @@ export default class InsightFacade implements IInsightFacade {
 		if (columns === undefined || columns.length === 0) {
 			throw new InsightError("No key in columns");
 		}
-
-		// let columnsString: string[] = [];
-		// for (let key of columns) {
-		// 	let field: string = key.split("_")[1];
-		// 	columnsString.push(field);
-		// }
-
+		data?.sort((a,b) => (a.id > b.id) ? 1 : ((b.id > a.id) ? -1 : 0));
 		let ret: InsightResult[] = [];
 		data?.forEach((sec) => {
 			let obj: {[key: string]: any} = {};

@@ -1,0 +1,29 @@
+{
+	"title": "LT < 3 couses_pass & GT >97 courses_avg",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"GT": {
+						"courses_avg": 97
+					}
+				},
+				{
+					"LT": {
+						"courses_pass": 3
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"courses_dept",
+				"courses_id",
+				"courses_avg"
+			],
+			"ORDER": "courses_avg"
+		}
+	},
+	"errorExpected": false,
+	"expected": [{"courses_dept":"crwr","courses_id":"599","courses_avg":98},{"courses_dept":"crwr","courses_id":"599","courses_avg":98}]
+	}
