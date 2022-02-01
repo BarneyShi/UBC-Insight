@@ -36,39 +36,39 @@ describe("InsightFacade", function () {
 		fs.removeSync(persistDir);
 	});
 
-	describe("Add/Remove/List Dataset", function () {
-		before(function () {
-			console.info(`Before: ${this.test?.parent?.title}`);
-		});
-
-		beforeEach(function () {
-			// This section resets the insightFacade instance
-			// This runs before each test
-			console.info(`BeforeTest: ${this.currentTest?.title}`);
-			insightFacade = new InsightFacade();
-		});
-
-		after(function () {
-			console.info(`After: ${this.test?.parent?.title}`);
-		});
-
-		afterEach(function () {
-			// This section resets the data directory (removing any cached data)
-			// This runs after each test, which should make each test independent from the previous one
-			console.info(`AfterTest: ${this.currentTest?.title}`);
-			fs.removeSync(persistDir);
-		});
-
-		// This is a unit test. You should create more like this!
-		it("Should add a valid dataset", function () {
-			const id: string = "courses";
-			const content: string = datasetContents.get("courses") ?? "";
-			const expected: string[] = [id];
-			return insightFacade.addDataset(id, content, InsightDatasetKind.Courses).then((result: string[]) => {
-				expect(result).to.deep.equal(expected);
-			});
-		});
-	});
+	// describe("Add/Remove/List Dataset", function () {
+	// 	before(function () {
+	// 		console.info(`Before: ${this.test?.parent?.title}`);
+	// 	});
+	//
+	// 	beforeEach(function () {
+	// 		// This section resets the insightFacade instance
+	// 		// This runs before each test
+	// 		console.info(`BeforeTest: ${this.currentTest?.title}`);
+	// 		insightFacade = new InsightFacade();
+	// 	});
+	//
+	// 	after(function () {
+	// 		console.info(`After: ${this.test?.parent?.title}`);
+	// 	});
+	//
+	// 	afterEach(function () {
+	// 		// This section resets the data directory (removing any cached data)
+	// 		// This runs after each test, which should make each test independent from the previous one
+	// 		console.info(`AfterTest: ${this.currentTest?.title}`);
+	// 		fs.removeSync(persistDir);
+	// 	});
+	//
+	// 	// This is a unit test. You should create more like this!
+	// 	it("Should add a valid dataset", function () {
+	// 		const id: string = "courses";
+	// 		const content: string = datasetContents.get("courses") ?? "";
+	// 		const expected: string[] = [id];
+	// 		return insightFacade.addDataset(id, content, InsightDatasetKind.Courses).then((result: string[]) => {
+	// 			expect(result).to.deep.equal(expected);
+	// 		});
+	// 	});
+	// });
 
 	/*
 	 * This test suite dynamically generates tests from the JSON files in test/queries.
@@ -114,61 +114,61 @@ describe("InsightFacade", function () {
 			}
 		);
 	});
-	describe("List Datasets", function () {
-		let facade: IInsightFacade = new InsightFacade();
-		let courses = getContentFromArchives("courses.zip");
-		beforeEach( function () {
-			clearDisk();
-			facade = new InsightFacade();
-		});
-
-		it("should list no datasets", function() {
-			return facade.listDatasets()
-				.then((insightDatasets) => {
-					expect(insightDatasets).to.deep.equal([]);
-				});
-		});
-
-		it ("should list one dataset", function() {
-			// add a dataset
-			return facade.addDataset("courses", courses, InsightDatasetKind.Courses)
-				.then((addedIds) => facade.listDatasets())
-				.then((insightDatasets) => {
-					expect(insightDatasets).to.deep.equal([{
-						id: "courses",
-						kind: InsightDatasetKind.Courses,
-						numRows: 64612,
-					}]);
-				});
-
-		});
-
-		it ("should list several datasets", function () {
-			return facade.addDataset("courses", courses, InsightDatasetKind.Courses)
-				.then(() => {
-					return facade.addDataset("courses-2", courses, InsightDatasetKind.Courses);
-				})
-				.then(() => {
-					return facade.listDatasets();
-				})
-				.then((insightDatasets) => {
-					const expectedDatasets: InsightDataset[] = [
-						{
-							id: "courses",
-							kind: InsightDatasetKind.Courses,
-							numRows: 64612
-						},
-						{
-							id: "courses-2",
-							kind: InsightDatasetKind.Courses,
-							numRows: 64612
-						}
-					];
-
-					expect(insightDatasets).to.be.an.instanceof(Array);
-					expect(insightDatasets).to.have.deep.members(expectedDatasets);
-					expect(insightDatasets).to.have.length(2);
-				});
-		});
-	});
+	// describe("List Datasets", function () {
+	// 	let facade: IInsightFacade = new InsightFacade();
+	// 	let courses = getContentFromArchives("courses.zip");
+	// 	beforeEach( function () {
+	// 		clearDisk();
+	// 		facade = new InsightFacade();
+	// 	});
+	//
+	// 	it("should list no datasets", function() {
+	// 		return facade.listDatasets()
+	// 			.then((insightDatasets) => {
+	// 				expect(insightDatasets).to.deep.equal([]);
+	// 			});
+	// 	});
+	//
+	// 	it ("should list one dataset", function() {
+	// 		// add a dataset
+	// 		return facade.addDataset("courses", courses, InsightDatasetKind.Courses)
+	// 			.then((addedIds) => facade.listDatasets())
+	// 			.then((insightDatasets) => {
+	// 				expect(insightDatasets).to.deep.equal([{
+	// 					id: "courses",
+	// 					kind: InsightDatasetKind.Courses,
+	// 					numRows: 64612,
+	// 				}]);
+	// 			});
+	//
+	// 	});
+	//
+	// 	it ("should list several datasets", function () {
+	// 		return facade.addDataset("courses", courses, InsightDatasetKind.Courses)
+	// 			.then(() => {
+	// 				return facade.addDataset("courses-2", courses, InsightDatasetKind.Courses);
+	// 			})
+	// 			.then(() => {
+	// 				return facade.listDatasets();
+	// 			})
+	// 			.then((insightDatasets) => {
+	// 				const expectedDatasets: InsightDataset[] = [
+	// 					{
+	// 						id: "courses",
+	// 						kind: InsightDatasetKind.Courses,
+	// 						numRows: 64612
+	// 					},
+	// 					{
+	// 						id: "courses-2",
+	// 						kind: InsightDatasetKind.Courses,
+	// 						numRows: 64612
+	// 					}
+	// 				];
+	//
+	// 				expect(insightDatasets).to.be.an.instanceof(Array);
+	// 				expect(insightDatasets).to.have.deep.members(expectedDatasets);
+	// 				expect(insightDatasets).to.have.length(2);
+	// 			});
+	// 	});
+	// });
 });

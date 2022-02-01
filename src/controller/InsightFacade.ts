@@ -104,7 +104,9 @@ export default class InsightFacade implements IInsightFacade {
 					throw new InsightError("no WHERE or no OPTIONS");
 				}
 				// handling where clause
-				this.handleWhere(where);
+				let queriedData: Section[] |undefined;
+				queriedData = this.handleWhere(where);
+				result = this.handleOptions(options, queriedData);
 			} else {
 				throw new InsightError("invalid query type");
 			}
@@ -142,8 +144,8 @@ export default class InsightFacade implements IInsightFacade {
 		return s;
 	}
 
-	private getSectionMfield(section: {[key: string]: any}, mfield: string): Section {
-		switch (mfield) {
+	private getSectionField(section: {[key: string]: any}, field: string): Section {
+		switch (field) {
 			case "avg": {
 				return section.avg;
 				break;
@@ -164,6 +166,26 @@ export default class InsightFacade implements IInsightFacade {
 				return section.year;
 				break;
 			}
+			case "dept": {
+				return section.dept;
+				break;
+			}
+			case "id": {
+				return section.id;
+				break;
+			}
+			case "instructor": {
+				return section.instructor;
+				break;
+			}
+			case "title": {
+				return section.title;
+				break;
+			}
+			case "uuid": {
+				return section.uuid;
+				break;
+			}
 			default: {
 				throw new InsightError("Invalid mfield");
 				break;
@@ -172,9 +194,10 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	private handleWhere(clause: object): any {
+	private handleWhere(clause: object): Section[] | undefined {
 		let where: {[key: string]: any} = clause as {[key: string]: any};
 		let filter: any;
+		let queriedData: Section[] | undefined;
 		switch (Object.keys(where)[0]) {
 			case "AND": {
 				break;
@@ -189,8 +212,8 @@ export default class InsightFacade implements IInsightFacade {
 				let mkey: string[] = Object.keys(where["GT"])[0].split("_");
 				let idstring: string = mkey[0];
 				let mfield: string = mkey[1];
-				let queriedData = this.dataset.get(idstring)?.filter((obj) => {
-					return this.getSectionMfield(obj,mfield) > where["GT"][Object.keys(where["GT"])[0]];
+				queriedData = this.dataset.get(idstring)?.filter((obj) => {
+					return this.getSectionField(obj,mfield) > where["GT"][Object.keys(where["GT"])[0]];
 				});
 				break;
 			}
@@ -208,6 +231,42 @@ export default class InsightFacade implements IInsightFacade {
 				break;
 			}
 		}
-		return null;
+		return queriedData;
+	}
+
+	private handleOptions(clause: object, data: Section[] | undefined): InsightResult[] {
+		let options: {[key: string]: any} = clause as {[key: string]: any};
+		let columns = options["COLUMNS"];
+		let order = options["ORDER"];
+		if (columns === undefined || columns.length === 0) {
+			throw new InsightError("No key in columns");
+		}
+
+		// let columnsString: string[] = [];
+		// for (let key of columns) {
+		// 	let field: string = key.split("_")[1];
+		// 	columnsString.push(field);
+		// }
+
+		let ret: InsightResult[] = [];
+		data?.forEach((sec) => {
+			let obj: {[key: string]: any} = {};
+			for (let key of columns) {
+				let field: string = key.split("_")[1];
+				obj[key] = this.getSectionField(sec,field);
+			}
+			ret.push(obj);
+		});
+
+		if (order) {
+			if (!columns.includes(order)) {
+				throw new InsightError("order not in columns");
+			}
+
+			// source:https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
+			ret.sort((a,b) => (a[order] > b[order]) ? 1 : ((b[order] > a[order]) ? -1 : 0));
+		}
+
+		return ret;
 	}
 }
