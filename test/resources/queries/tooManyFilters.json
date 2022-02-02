@@ -1,0 +1,50 @@
+{
+  "title": "where has too many filters",
+  "input": {
+    "WHERE":{
+      "OR":[
+        {
+          "AND":[
+            {
+              "GT":{
+                "courses_avg":90
+              }
+            },
+            {
+              "IS":{
+                "courses_dept":"adhe"
+              }
+            }
+          ]
+        },
+        {
+          "EQ":{
+            "courses_avg":95
+          }
+        }
+      ],
+      "AND": [
+        {
+          "LT":{
+            "courses_avg":95
+          }
+        },
+        {
+          "IS":{
+            "courses_dept":"adhe"
+          }
+        }
+      ]
+    },
+    "OPTIONS":{
+      "COLUMNS":[
+        "courses_dept",
+        "courses_id",
+        "courses_avg"
+      ],
+      "ORDER":"courses_avg"
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

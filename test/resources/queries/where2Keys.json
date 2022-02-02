@@ -1,0 +1,30 @@
+{
+  "title": "lowercase key",
+  "input": {
+    "WHERE": {
+      "NOT": {
+        "OR": [
+          {
+            "AND": [
+              {
+                "lt": {
+                  "courses_avg": 96
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "courses_dept",
+        "courses_id",
+        "courses_avg"
+      ],
+      "ORDER": "courses_avg"
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

@@ -1,0 +1,24 @@
+{
+  "title": "EQ 1",
+  "input": {
+    "WHERE": {
+      "AND": [
+        {
+          "EQ": {
+            "courses_avg": 1
+          }
+        }
+      ]
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "courses_dept",
+        "courses_id",
+        "courses_avg"
+      ],
+      "ORDER": "courses_avg"
+    }
+  },
+  "errorExpected": false,
+  "expected": [{"courses_dept":"wood","courses_id":"475","courses_avg":1}]
+  }

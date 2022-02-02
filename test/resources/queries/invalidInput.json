@@ -1,0 +1,6 @@
+{
+  "title": "input is an integer",
+  "input": 6,
+  "errorExpected": true,
+  "expected": "InsightError"
+}

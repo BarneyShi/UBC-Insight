@@ -1,0 +1,29 @@
+{
+	"title": "LT < 3 couses_avg or GT >2500 courses_pass",
+	"input": {
+		"WHERE": {
+			"OR": [
+				{
+					"LT": {
+						"courses_avg": 3
+					}
+				},
+				{
+					"GT": {
+						"courses_pass": 2500
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"courses_dept",
+				"courses_id",
+				"courses_avg",
+				"courses_pass"
+			],
+			"ORDER": "courses_avg"
+		}
+	},
+	"errorExpected": false,
+	"expected": [{"courses_dept":"lfs","courses_id":"100","courses_avg":0,"courses_pass":0},{"courses_dept":"lfs","courses_id":"100","courses_avg":0,"courses_pass":0},{"courses_dept":"frst","courses_id":"202","courses_avg":0,"courses_pass":0},{"courses_dept":"wood","courses_id":"475","courses_avg":1,"courses_pass":0},{"courses_dept":"engl","courses_id":"112","courses_avg":71.51,"courses_pass":2502},{"courses_dept":"engl","courses_id":"112","courses_avg":71.71,"courses_pass":2557},{"courses_dept":"engl","courses_id":"112","courses_avg":71.91,"courses_pass":2994},{"courses_dept":"engl","courses_id":"112","courses_avg":72.91,"courses_pass":2698},{"courses_dept":"engl","courses_id":"112","courses_avg":73.17,"courses_pass":2655}]	}

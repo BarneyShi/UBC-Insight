@@ -1,0 +1,16 @@
+{
+  "title": "separated by dash",
+  "input": {
+    "WHERE":{
+    },
+    "OPTIONS":{
+      "COLUMNS":[
+        "courses-dept",
+        "courses-avg"
+      ],
+      "ORDER":"courses-avg"
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

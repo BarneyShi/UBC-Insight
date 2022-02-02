@@ -1,0 +1,16 @@
+{
+  "title": "separated by several underscores",
+  "input": {
+    "WHERE":{
+    },
+    "OPTIONS":{
+      "COLUMNS":[
+        "courses__dept",
+        "courses__avg"
+      ],
+      "ORDER":"courses__avg"
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

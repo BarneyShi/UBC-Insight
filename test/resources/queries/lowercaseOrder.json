@@ -1,0 +1,39 @@
+{
+  "title": "lowercase Order",
+  "input": {
+    "WHERE":{
+      "OR":[
+        {
+          "AND":[
+            {
+              "GT":{
+                "courses_avg":90
+              }
+            },
+            {
+              "IS":{
+                "courses_dept":"adhe"
+              }
+            }
+          ]
+        },
+        {
+          "EQ":{
+            "courses_avg":95
+          }
+        }
+      ]
+    },
+    "OPTIONS":{
+      "COLUMNS":[
+        "courses_dept",
+        "courses_id",
+        "courses_avg"
+      ],
+      "order":"courses_avg"
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+
+}

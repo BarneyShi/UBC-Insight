@@ -1,0 +1,20 @@
+{
+	"title": "EQ",
+	"input": {
+		"WHERE": {
+			"EQ": {
+				"courses_avg": 0
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"courses_dept",
+				"courses_id",
+				"courses_avg"
+			],
+			"ORDER": "courses_avg"
+		}
+	},
+	"errorExpected": false,
+	"expected": [{"courses_dept":"lfs","courses_id":"100","courses_avg":0},{"courses_dept":"lfs","courses_id":"100","courses_avg":0},{"courses_dept":"frst","courses_id":"202","courses_avg":0}]
+	}
