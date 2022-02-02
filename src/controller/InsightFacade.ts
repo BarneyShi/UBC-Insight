@@ -105,8 +105,8 @@ export default class InsightFacade implements IInsightFacade {
 			if (where == null || options == null || Object.keys(queryCast).length !== 2) {
 				throw new InsightError("incorrect first level keys");
 			}
-				// get id string
-				// works because columns must be non-empty array
+			// get id string
+			// works because columns must be non-empty array
 			if (options["COLUMNS"] == null) {
 				throw new InsightError("no columns");
 			}
@@ -117,7 +117,7 @@ export default class InsightFacade implements IInsightFacade {
 			if (idstring == null || idstring === "" || /\s/g.test(idstring)) {
 				throw new InsightError("invalid idstring");
 			}
-				// handling where clause
+			// handling where clause
 			let queriedData: Section[] | undefined;
 			queriedData = this.handleWhere(where, idstring);
 			if (queriedData == null) {
@@ -150,6 +150,10 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	private setSection(section: {[key: string]: any}): Section {
+		let year: number = section.Year;
+		if (section.Section === "overall") {
+			year = 1900;
+		}
 		const s: Section = new Section(
 			section.Subject,
 			section.Course,
@@ -160,7 +164,7 @@ export default class InsightFacade implements IInsightFacade {
 			section.Fail,
 			section.Audit,
 			section.id,
-			section.Year
+			year
 		);
 		return s;
 	}
