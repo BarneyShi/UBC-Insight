@@ -783,6 +783,11 @@ chai-http@4.3.0:
     qs "^6.5.1"
     superagent "^3.7.0"
 
+chai-sorted@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/chai-sorted/-/chai-sorted-0.2.0.tgz#1fee8f07fef4b0043bdff9e07022a0812c12ef55"
+  integrity sha1-H+6PB/70sAQ73/ngcCKggSwS71U=
+
 chai@4.3.4:
   version "4.3.4"
   resolved "https://registry.yarnpkg.com/chai/-/chai-4.3.4.tgz#b55e655b31e1eac7099be4c08c21964fce2e6c49"

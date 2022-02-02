@@ -25,5 +25,5 @@
     }
   },
   "errorExpected": false,
-  "expected": []
+  "expected": [{"courses_dept":"psyc","courses_id":"549","courses_avg":97},{"courses_dept":"epse","courses_id":"534","courses_avg":97},{"courses_dept":"crwr","courses_id":"599","courses_avg":97}]
 }

@@ -4,12 +4,13 @@ import {
 	InsightDatasetKind,
 	InsightError,
 	InsightResult,
-	NotFoundError,
+	NotFoundError, ResultTooLargeError,
 } from "./IInsightFacade";
 import Section from "../model/Section";
 import JSZip from "jszip";
 import * as fs from "fs-extra";
 // import section from "../model/Section";
+import {getSectionField, handleSComparison, handleMComparison} from "./InsightFacadeUtil";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -93,28 +94,47 @@ export default class InsightFacade implements IInsightFacade {
 
 	public performQuery(query: unknown): Promise<InsightResult[]> {
 		let result: InsightResult[] = [{incorrect: "result"}];
-		try {
-			if (typeof query === "object") {
-				if (query == null) {
-					throw new InsightError("query is null or undefined");
-				}
-				let queryCast: {[key: string]: any} = query as {[key: string]: any};
-				let where = queryCast["WHERE"];
-				let options = queryCast["OPTIONS"];
-				if (where == null || options == null || Object.keys(queryCast).length !== 2) {
-					throw new InsightError("incorrect first level keys");
-				}
-				// handling where clause
-				let queriedData: Section[] |undefined ;
-				queriedData = this.handleWhere(where);
-				result = this.handleOptions(options, queriedData);
-			} else {
-				throw new InsightError("invalid query type");
+		// try {
+		if (typeof query === "object") {
+			if (query == null) {
+				throw new InsightError("query is null or undefined");
 			}
-			return Promise.resolve(result);
-		} catch (error) {
-			throw new InsightError(error as string);
+			let queryCast: {[key: string]: any} = query as {[key: string]: any};
+			let where = queryCast["WHERE"];
+			let options = queryCast["OPTIONS"];
+			if (where == null || options == null || Object.keys(queryCast).length !== 2) {
+				throw new InsightError("incorrect first level keys");
+			}
+				// get id string
+				// works because columns must be non-empty array
+			if (options["COLUMNS"] == null) {
+				throw new InsightError("no columns");
+			}
+			if ((options["COLUMNS"][0].match(/_/g) || []).length !== 1) {
+				throw new InsightError("incorrect number of underscores");
+			}
+			let idstring: string = options["COLUMNS"][0].split("_")[0];
+			if (idstring == null || idstring === "" || /\s/g.test(idstring)) {
+				throw new InsightError("invalid idstring");
+			}
+				// handling where clause
+			let queriedData: Section[] | undefined;
+			queriedData = this.handleWhere(where, idstring);
+			if (queriedData == null) {
+				throw new InsightError("queriedData is null");
+			}
+			result = this.handleOptions(options, queriedData);
+		} else {
+			throw new InsightError("invalid query type");
 		}
+		return Promise.resolve(result);
+		// } catch (error) {
+		// 	if (error instanceof ResultTooLargeError) {
+		// 		throw new ResultTooLargeError("result is too large");
+		// 	} else {
+		// 		throw new InsightError(error as string);
+		// 	}
+		// }
 	}
 
 	public listDatasets(): Promise<InsightDataset[]> {
@@ -145,148 +165,98 @@ export default class InsightFacade implements IInsightFacade {
 		return s;
 	}
 
-	private getSectionField(section: {[key: string]: any}, field: string): Section {
-		switch (field) {
-			case "avg": {
-				return section.avg;
-				break;
-			}
-			case "pass": {
-				return section.pass;
-				break;
-			}
-			case "fail": {
-				return section.fail;
-				break;
-			}
-			case "audit": {
-				return section.audit;
-				break;
-			}
-			case "year": {
-				return section.year;
-				break;
-			}
-			case "dept": {
-				return section.dept;
-				break;
-			}
-			case "id": {
-				return section.id;
-				break;
-			}
-			case "instructor": {
-				return section.instructor;
-				break;
-			}
-			case "title": {
-				return section.title;
-				break;
-			}
-			case "uuid": {
-				return section.uuid;
-				break;
-			}
-			default: {
-				throw new InsightError("Invalid field");
-				break;
-			}
-
-		}
-	}
-
-	private handleWhere(clause: object): Section[] | undefined {
+	private handleWhere(clause: object, idstring: string): Section[] | undefined {
 		let where: {[key: string]: any} = clause as {[key: string]: any};
-		return this.dataset.get("courses")?.filter((obj) => {
-			return this.handleWhereOperation(where, obj);
+		return this.dataset.get(idstring)?.filter((obj) => {
+			return this.handleWhereOperation(where, obj, idstring);
 		});
 	}
 
-	private handleWhereOperation(where: {[p: string]: any}, obj: Section): boolean {
+	private handleWhereOperation(where: {[p: string]: any}, obj: Section, idstr: string): boolean {
+		let mfield: string[] = ["avg", "pass", "fail", "audit", "year"];
+		let sfield: string[] = ["dept", "id", "instructor", "title", "uuid"];
+		if (Object.keys(where).length === 0) {
+			return true;
+		} else if (Object.keys(where).length > 1) {
+			throw new InsightError("where has too many filters");
+		}
 		switch (Object.keys(where)[0]) {
 			case "AND": {
-				return this.handleWhereOperation(where["AND"][0], obj)
-					&& this.handleWhereOperation(where["AND"][1], obj);
-				break;
+				return this.handleLogicComparison("AND", where, obj, idstr);
 			}
 			case "OR": {
-				return this.handleWhereOperation(where["OR"][0], obj)
-					|| this.handleWhereOperation(where["OR"][1], obj);
-				break;
+				return this.handleLogicComparison("OR", where, obj, idstr);
 			}
 			case "LT": {
-				let mkey: string[] = Object.keys(where["LT"])[0].split("_");
-				let [idstring, mfield] = mkey;
-				return this.getSectionField(obj, mfield) < where["LT"][Object.keys(where["LT"])[0]];
-				break;
+				return handleMComparison("LT", where, idstr, mfield, obj);
 			}
 			case "GT": {
-				let mkey: string[] = Object.keys(where["GT"])[0].split("_");
-				let idstring: string = mkey[0];
-				let mfield: string = mkey[1];
-				return this.getSectionField(obj, mfield) > where["GT"][Object.keys(where["GT"])[0]];
-				break;
+				return handleMComparison("GT", where, idstr, mfield, obj);
 			}
 			case "EQ": {
-				let mkey: string[] = Object.keys(where["EQ"])[0].split("_");
-				let idstring: string = mkey[0];
-				let mfield: string = mkey[1];
-				return this.getSectionField(obj, mfield) === where["EQ"][Object.keys(where["EQ"])[0]];
-				break;
+				return handleMComparison("EQ", where, idstr, mfield, obj);
 			}
 			case "IS": {
-				let mkey: string[] = Object.keys(where["IS"])[0].split("_");
-				let idstring: string = mkey[0];
-				let mfield: string = mkey[1];
-				return this.getSectionField(obj, mfield) === where["IS"][Object.keys(where["IS"])[0]];
-				break;
+				return handleSComparison(where, idstr, sfield, obj);
 			}
 			case "NOT": {
-				return !this.handleWhereOperation(where["NOT"], obj);
-				break;
+				return !this.handleWhereOperation(where["NOT"], obj, idstr);
 			}
 			default: {
 				throw new InsightError("invalid filter");
-				break;
 			}
 		}
-		return false;
 	}
 
-	private handleWhereOp(where: {[p: string]: any}, op: string, obj: Section) {
-		let mkey: string[] = Object.keys(where[op])[0].split("_");
-		let idstring: string = mkey[0];
-		let mfield: string = mkey[1];
-		return this.getSectionField(obj, mfield) > where[op][Object.keys(where[op])[0]];
+	private handleLogicComparison(logicOp: string, where: {[p: string]: any}, obj: Section, idstr: string) {
+		let result: boolean;
+		// source: https://stackoverflow.com/questions/24403732/how-to-check-if-array-is-empty-or-does-not-exist
+		if (!Array.isArray(where[logicOp]) || !where[logicOp].length) {
+			throw new InsightError("Logic has <1 filter");
+		}
+		if (logicOp === "AND") {
+			result = true;
+			for (let filter of where[logicOp]) {
+				result &&= this.handleWhereOperation(filter, obj, idstr);
+			}
+		} else {
+			result = false;
+			for (let filter of where[logicOp]) {
+				result ||= this.handleWhereOperation(filter, obj, idstr);
+			}
+		}
+		return result;
 	}
 
-	private handleOptions(clause: object, data: Section[] | undefined): InsightResult[] {
+	private handleOptions(clause: object, data: Section[]): InsightResult[] {
 		let options: {[key: string]: any} = clause as {[key: string]: any};
 		let columns = options["COLUMNS"];
 		let order = options["ORDER"];
-		if (columns === undefined || columns.length === 0) {
+		// source: https://stackoverflow.com/questions/24403732/how-to-check-if-array-is-empty-or-does-not-exist
+		if (!Array.isArray(columns) || !columns.length) {
 			throw new InsightError("No key in columns");
 		}
-		data?.sort((a,b) => (a.id > b.id) ? 1 : ((b.id > a.id) ? -1 : 0));
 		let ret: InsightResult[] = [];
 		data?.forEach((sec) => {
 			let obj: {[key: string]: any} = {};
 			for (let key of columns) {
 				let field: string = key.split("_")[1];
-				obj[key] = this.getSectionField(sec,field);
+				obj[key] = getSectionField(sec,field);
 			}
 			ret.push(obj);
 		});
-
-		if (order) {
+		if ((Object.keys(options).length === 2) && order != null) {
 			if (!columns.includes(order)) {
 				throw new InsightError("order not in columns");
 			}
-
 			// source:https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
 			ret.sort((a,b) => (a[order] > b[order]) ? 1 : ((b[order] > a[order]) ? -1 : 0));
+		} else if (Object.keys(options).length > 1) {
+			throw new InsightError("Invalid keys in options");
 		}
-
+		if (ret.length > 5000) {
+			throw new ResultTooLargeError("TooLarge");
+		}
 		return ret;
 	}
 }
