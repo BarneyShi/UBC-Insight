@@ -17,3 +17,7 @@ data/
 .DS_Store
 .env
 *.log
+
+# C0 Tests
+**/test/TestUtil.ts
+**/test/controller/InsightFacade.barney.spec.ts
