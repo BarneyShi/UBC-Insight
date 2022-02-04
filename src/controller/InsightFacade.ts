@@ -4,7 +4,8 @@ import {
 	InsightDatasetKind,
 	InsightError,
 	InsightResult,
-	NotFoundError, ResultTooLargeError,
+	NotFoundError,
+	ResultTooLargeError,
 } from "./IInsightFacade";
 import Section from "../model/Section";
 import JSZip from "jszip";
@@ -93,48 +94,50 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public performQuery(query: unknown): Promise<InsightResult[]> {
-		let result: InsightResult[] = [{incorrect: "result"}];
-		// try {
-		if (typeof query === "object") {
-			if (query == null) {
-				throw new InsightError("query is null or undefined");
+		try {
+			let result: InsightResult[] = [{incorrect: "result"}];
+			if (typeof query === "object") {
+				if (query == null) {
+					throw new InsightError("query is null or undefined");
+				}
+				let queryCast: {[key: string]: any} = query as {[key: string]: any};
+				let where = queryCast["WHERE"];
+				let options = queryCast["OPTIONS"];
+				if (where == null || options == null || Object.keys(queryCast).length !== 2) {
+					throw new InsightError("incorrect first level keys");
+				}
+				// get id string
+				// works because columns must be non-empty array
+				if (options["COLUMNS"] == null) {
+					throw new InsightError("no columns");
+				}
+				if ((options["COLUMNS"][0].match(/_/g) || []).length !== 1) {
+					throw new InsightError("incorrect number of underscores");
+				}
+				let idstring: string = options["COLUMNS"][0].split("_")[0];
+				if (idstring == null || idstring === "" || /\s/g.test(idstring)) {
+					throw new InsightError("invalid idstring");
+				}
+				// handling where clause
+				let queriedData: Section[] | undefined;
+				queriedData = this.handleWhere(where, idstring);
+				if (queriedData == null) {
+					throw new InsightError("queriedData is null");
+				}
+				result = this.handleOptions(options, queriedData);
+			} else {
+				throw new InsightError("invalid query type");
 			}
-			let queryCast: {[key: string]: any} = query as {[key: string]: any};
-			let where = queryCast["WHERE"];
-			let options = queryCast["OPTIONS"];
-			if (where == null || options == null || Object.keys(queryCast).length !== 2) {
-				throw new InsightError("incorrect first level keys");
+			return Promise.resolve(result);
+		} catch (error) {
+			if (error instanceof ResultTooLargeError) {
+				throw new ResultTooLargeError("result is too large");
+			} else if (error instanceof InsightError) {
+				throw new InsightError("string for now");
+			} else {
+				throw new InsightError("Uncaught error");
 			}
-			// get id string
-			// works because columns must be non-empty array
-			if (options["COLUMNS"] == null) {
-				throw new InsightError("no columns");
-			}
-			if ((options["COLUMNS"][0].match(/_/g) || []).length !== 1) {
-				throw new InsightError("incorrect number of underscores");
-			}
-			let idstring: string = options["COLUMNS"][0].split("_")[0];
-			if (idstring == null || idstring === "" || /\s/g.test(idstring)) {
-				throw new InsightError("invalid idstring");
-			}
-			// handling where clause
-			let queriedData: Section[] | undefined;
-			queriedData = this.handleWhere(where, idstring);
-			if (queriedData == null) {
-				throw new InsightError("queriedData is null");
-			}
-			result = this.handleOptions(options, queriedData);
-		} else {
-			throw new InsightError("invalid query type");
 		}
-		return Promise.resolve(result);
-		// } catch (error) {
-		// 	if (error instanceof ResultTooLargeError) {
-		// 		throw new ResultTooLargeError("result is too large");
-		// 	} else {
-		// 		throw new InsightError(error as string);
-		// 	}
-		// }
 	}
 
 	public listDatasets(): Promise<InsightDataset[]> {
@@ -245,16 +248,16 @@ export default class InsightFacade implements IInsightFacade {
 			let obj: {[key: string]: any} = {};
 			for (let key of columns) {
 				let field: string = key.split("_")[1];
-				obj[key] = getSectionField(sec,field);
+				obj[key] = getSectionField(sec, field);
 			}
 			ret.push(obj);
 		});
-		if ((Object.keys(options).length === 2) && order != null) {
+		if (Object.keys(options).length === 2 && order != null) {
 			if (!columns.includes(order)) {
 				throw new InsightError("order not in columns");
 			}
 			// source:https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
-			ret.sort((a,b) => (a[order] > b[order]) ? 1 : ((b[order] > a[order]) ? -1 : 0));
+			ret.sort((a, b) => (a[order] > b[order] ? 1 : b[order] > a[order] ? -1 : 0));
 		} else if (Object.keys(options).length > 1) {
 			throw new InsightError("Invalid keys in options");
 		}
