@@ -1,0 +1,34 @@
+{
+  "title": "SComparison wildcards",
+  "input": {
+    "WHERE": {
+      "AND": [
+        {
+          "GT": {
+            "courses_avg": 95
+          }
+        },
+        {
+          "IS": {
+            "courses_dept": "*sc"
+          }
+        }
+      ]
+    },
+    "OPTIONS": {
+      "COLUMNS": ["courses_dept", "courses_id", "courses_avg"],
+      "ORDER": "courses_avg"
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    { "courses_dept": "apsc", "courses_id": "279", "courses_avg": 95.05 },
+    { "courses_dept": "musc", "courses_id": "506", "courses_avg": 95.38 },
+    { "courses_dept": "musc", "courses_id": "506", "courses_avg": 95.67 },
+    { "courses_dept": "apsc", "courses_id": "279", "courses_avg": 95.94 },
+    { "courses_dept": "apsc", "courses_id": "279", "courses_avg": 95.95 },
+    { "courses_dept": "apsc", "courses_id": "279", "courses_avg": 96 },
+    { "courses_dept": "musc", "courses_id": "559", "courses_avg": 96.5 },
+    { "courses_dept": "musc", "courses_id": "559", "courses_avg": 96.5 }
+  ]
+}

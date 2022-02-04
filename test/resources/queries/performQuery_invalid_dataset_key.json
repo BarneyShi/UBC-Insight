@@ -1,0 +1,17 @@
+{
+  "title": "Invalid dataset key",
+  "input": {
+    "WHERE": {
+      "GT": {
+        "courses_num": 99
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": ["courses_dept", "courses_avg"],
+
+      "ORDER": "courses_avg"
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}
