@@ -1,0 +1,43 @@
+{
+  "title": "no pass in order",
+  "input": {
+    "WHERE":{
+      "OR":[
+        {
+          "AND":[
+            {
+              "GT":{
+                "courses_avg":90
+              }
+            },
+            {
+              "IS":{
+                "courses_dept":"adhe"
+              }
+            }
+          ]
+        },
+        {
+          "EQ":{
+            "courses_avg":95
+          }
+        }
+      ]
+    },
+    "OPTIONS":{
+      "COLUMNS":[
+        "courses_fail",
+	  	"courses_pass",
+	  	"courses_audit",
+	  	"courses_year",
+	 	"courses_dept",
+	  	"courses_id",
+	  	"courses_instructor",
+	  	"courses_uuid"
+	  ],
+      "ORDER":"courses_title"
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

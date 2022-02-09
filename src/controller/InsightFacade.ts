@@ -93,48 +93,51 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public performQuery(query: unknown): Promise<InsightResult[]> {
-		let result: InsightResult[] = [{incorrect: "result"}];
+		try {
+			let result: InsightResult[] = [{incorrect: "result"}];
 		// try {
-		if (typeof query === "object") {
-			if (query == null) {
-				throw new InsightError("query is null or undefined");
-			}
-			let queryCast: {[key: string]: any} = query as {[key: string]: any};
-			let where = queryCast["WHERE"];
-			let options = queryCast["OPTIONS"];
-			if (where == null || options == null || Object.keys(queryCast).length !== 2) {
-				throw new InsightError("incorrect first level keys");
-			}
+			if (typeof query === "object") {
+				if (query == null) {
+					throw new InsightError("query is null or undefined");
+				}
+				let queryCast: {[key: string]: any} = query as {[key: string]: any};
+				let where = queryCast["WHERE"];
+				let options = queryCast["OPTIONS"];
+				if (where == null || options == null || Object.keys(queryCast).length !== 2) {
+					throw new InsightError("incorrect first level keys");
+				}
 			// get id string
 			// works because columns must be non-empty array
-			if (options["COLUMNS"] == null) {
-				throw new InsightError("no columns");
-			}
-			if ((options["COLUMNS"][0].match(/_/g) || []).length !== 1) {
-				throw new InsightError("incorrect number of underscores");
-			}
-			let idstring: string = options["COLUMNS"][0].split("_")[0];
-			if (idstring == null || idstring === "" || /\s/g.test(idstring)) {
-				throw new InsightError("invalid idstring");
-			}
+				if (options["COLUMNS"] == null) {
+					throw new InsightError("no columns");
+				}
+				if ((options["COLUMNS"][0].match(/_/g) || []).length !== 1) {
+					throw new InsightError("incorrect number of underscores");
+				}
+				let idstring: string = options["COLUMNS"][0].split("_")[0];
+				if (idstring == null || idstring === "" || /\s/g.test(idstring)) {
+					throw new InsightError("invalid idstring");
+				}
 			// handling where clause
-			let queriedData: Section[] | undefined;
-			queriedData = this.handleWhere(where, idstring);
-			if (queriedData == null) {
-				throw new InsightError("queriedData is null");
+				let queriedData: Section[] | undefined;
+				queriedData = this.handleWhere(where, idstring);
+				if (queriedData == null) {
+					throw new InsightError("queriedData is null");
+				}
+				result = this.handleOptions(options, queriedData, idstring);
+			} else {
+				throw new InsightError("invalid query type");
 			}
-			result = this.handleOptions(options, queriedData);
-		} else {
-			throw new InsightError("invalid query type");
+			return Promise.resolve(result);
+		} catch (error) {
+			if (error instanceof ResultTooLargeError) {
+				throw new ResultTooLargeError("result is too large");
+			} else if (error instanceof InsightError) {
+				throw new InsightError("string for now");
+			} else {
+				throw new InsightError("Uncaught error");
+			}
 		}
-		return Promise.resolve(result);
-		// } catch (error) {
-		// 	if (error instanceof ResultTooLargeError) {
-		// 		throw new ResultTooLargeError("result is too large");
-		// 	} else {
-		// 		throw new InsightError(error as string);
-		// 	}
-		// }
 	}
 
 	public listDatasets(): Promise<InsightDataset[]> {
@@ -232,7 +235,7 @@ export default class InsightFacade implements IInsightFacade {
 		return result;
 	}
 
-	private handleOptions(clause: object, data: Section[]): InsightResult[] {
+	private handleOptions(clause: object, data: Section[], idstr: string): InsightResult[] {
 		let options: {[key: string]: any} = clause as {[key: string]: any};
 		let columns = options["COLUMNS"];
 		let order = options["ORDER"];
@@ -244,7 +247,10 @@ export default class InsightFacade implements IInsightFacade {
 		data?.forEach((sec) => {
 			let obj: {[key: string]: any} = {};
 			for (let key of columns) {
-				let field: string = key.split("_")[1];
+				let [idstring, field] = key.split("_");
+				if (idstring !== idstr) {
+					throw new InsightError("references multiple datasets");
+				}
 				obj[key] = getSectionField(sec,field);
 			}
 			ret.push(obj);
