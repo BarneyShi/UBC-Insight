@@ -4,7 +4,8 @@ import {
 	InsightDatasetKind,
 	InsightError,
 	InsightResult,
-	NotFoundError, ResultTooLargeError,
+	NotFoundError,
+	ResultTooLargeError,
 } from "./IInsightFacade";
 import Section from "../model/Section";
 import JSZip from "jszip";
@@ -95,7 +96,6 @@ export default class InsightFacade implements IInsightFacade {
 	public performQuery(query: unknown): Promise<InsightResult[]> {
 		try {
 			let result: InsightResult[] = [{incorrect: "result"}];
-		// try {
 			if (typeof query === "object") {
 				if (query == null) {
 					throw new InsightError("query is null or undefined");
@@ -106,8 +106,8 @@ export default class InsightFacade implements IInsightFacade {
 				if (where == null || options == null || Object.keys(queryCast).length !== 2) {
 					throw new InsightError("incorrect first level keys");
 				}
-			// get id string
-			// works because columns must be non-empty array
+				// get id string
+				// works because columns must be non-empty array
 				if (options["COLUMNS"] == null) {
 					throw new InsightError("no columns");
 				}
@@ -118,7 +118,7 @@ export default class InsightFacade implements IInsightFacade {
 				if (idstring == null || idstring === "" || /\s/g.test(idstring)) {
 					throw new InsightError("invalid idstring");
 				}
-			// handling where clause
+				// handling where clause
 				let queriedData: Section[] | undefined;
 				queriedData = this.handleWhere(where, idstring);
 				if (queriedData == null) {
