@@ -124,7 +124,7 @@ export default class InsightFacade implements IInsightFacade {
 				if (queriedData == null) {
 					throw new InsightError("queriedData is null");
 				}
-				result = this.handleOptions(options, queriedData);
+				result = this.handleOptions(options, queriedData, idstring);
 			} else {
 				throw new InsightError("invalid query type");
 			}
@@ -235,7 +235,7 @@ export default class InsightFacade implements IInsightFacade {
 		return result;
 	}
 
-	private handleOptions(clause: object, data: Section[]): InsightResult[] {
+	private handleOptions(clause: object, data: Section[], idstr: string): InsightResult[] {
 		let options: {[key: string]: any} = clause as {[key: string]: any};
 		let columns = options["COLUMNS"];
 		let order = options["ORDER"];
@@ -247,17 +247,20 @@ export default class InsightFacade implements IInsightFacade {
 		data?.forEach((sec) => {
 			let obj: {[key: string]: any} = {};
 			for (let key of columns) {
-				let field: string = key.split("_")[1];
-				obj[key] = getSectionField(sec, field);
+				let [idstring, field] = key.split("_");
+				if (idstring !== idstr) {
+					throw new InsightError("references multiple datasets");
+				}
+				obj[key] = getSectionField(sec,field);
 			}
 			ret.push(obj);
 		});
-		if (Object.keys(options).length === 2 && order != null) {
+		if ((Object.keys(options).length === 2) && order != null) {
 			if (!columns.includes(order)) {
 				throw new InsightError("order not in columns");
 			}
 			// source:https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
-			ret.sort((a, b) => (a[order] > b[order] ? 1 : b[order] > a[order] ? -1 : 0));
+			ret.sort((a,b) => (a[order] > b[order]) ? 1 : ((b[order] > a[order]) ? -1 : 0));
 		} else if (Object.keys(options).length > 1) {
 			throw new InsightError("Invalid keys in options");
 		}
