@@ -54,7 +54,7 @@ export default class InsightFacade implements IInsightFacade {
 						let jsons;
 						try {
 							jsons = JSON.parse(data);
-							this.dataset.get(id)?.push(...jsons.result.map((e: any) => this.setSection(e)));
+							this.dataset.get(id)?.push(...this.setSections(jsons.result));
 							// Persit to ./data
 							const jsonPath = `./data/${id}/${relativePath}.json`;
 							await fs.outputJSON(jsonPath, jsons);
@@ -152,24 +152,28 @@ export default class InsightFacade implements IInsightFacade {
 		return Promise.resolve(res);
 	}
 
-	private setSection(section: {[key: string]: any}): Section {
-		let year: number = section.Year;
-		if (section.Section === "overall") {
-			year = 1900;
-		}
-		const s: Section = new Section(
-			section.Subject,
-			section.Course,
-			section.Avg,
-			section.Professor,
-			section.Title,
-			section.Pass,
-			section.Fail,
-			section.Audit,
-			section.id,
-			year
-		);
-		return s;
+	private setSections(sections: Array<{[key: string]: any}>): Section[] {
+		let ans: Section[] = [];
+		sections.forEach((e: any) => {
+			let year: number = e.Year;
+			if (e.Section === "overall") {
+				year = 1900;
+			}
+			const s: Section = new Section(
+				e.Subject,
+				e.Course,
+				e.Avg,
+				e.Professor,
+				e.Title,
+				e.Pass,
+				e.Fail,
+				e.Audit,
+				e.id,
+				year
+			);
+			ans.push(s);
+		});
+		return ans;
 	}
 
 	private handleWhere(clause: object, idstring: string): Section[] | undefined {
