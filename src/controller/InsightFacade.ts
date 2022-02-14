@@ -30,7 +30,11 @@ export default class InsightFacade implements IInsightFacade {
 		try {
 			this.checkDatasetID(id);
 
-			return this.addCourses(id, content);
+			this.dataset.set(id, []);
+			const jsZip = new JSZip();
+			let zips = await jsZip.loadAsync(content, {base64: true});
+
+			return this.addCourses(id, zips);
 		} catch (error) {
 			throw new InsightError(error as string);
 		}
@@ -117,10 +121,7 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	private async addCourses(id: string, content: string): Promise<string[]> {
-		this.dataset.set(id, []);
-		const jsZip = new JSZip();
-		let zips = await jsZip.loadAsync(content, {base64: true});
+	private async addCourses(id: string, zips: JSZip): Promise<string[]> {
 
 		// Check if root dir has 'courses/'
 		if (!zips.files["courses/"]) {
@@ -182,6 +183,13 @@ export default class InsightFacade implements IInsightFacade {
 		});
 		return ans;
 	}
+
+	// private async addRooms(id: string, zips: JSZip) {
+	// 	// Check if root dir has 'rooms/'
+	// 	if (!zips.files["rooms/"]) {
+	// 		throw new Error("Root dir doesn't have a rooms/ folder.");
+	// 	}
+	// }
 
 	private handleWhere(clause: object, idstring: string): Section[] | undefined {
 		let where: {[key: string]: any} = clause as {[key: string]: any};
