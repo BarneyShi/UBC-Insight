@@ -1,3 +1,5 @@
+import JSZip from "jszip";
+import * as fs from "fs-extra";
 import Section from "../model/Section";
 import {InsightError} from "./IInsightFacade";
 
@@ -83,4 +85,72 @@ function getSectionField(section: {[key: string]: any}, field: string): Section 
 	}
 }
 
-export {getSectionField, handleSComparison, handleMComparison};
+
+async function addCourses(id: string, zips: JSZip, dataset: Map<string, Section[]>): Promise<string[]> {
+	try {
+	// Check if root dir has 'courses/'
+		if (!zips.files["courses/"]) {
+			throw new Error("Root dir doesn't have a courses/ folder.");
+		}
+	// Add dataset to Map() and /data folder.
+		let promises: Array<Promise<void>> = [];
+		let ids: string[] = [];
+		zips.forEach((relativePath, file) => {
+			if (relativePath.match(/^courses/g) !== null) {
+				const promise = file.async("text").then(async (data) => {
+					let jsons;
+					try {
+						jsons = JSON.parse(data);
+						dataset.get(id)?.push(...setSections(jsons.result));
+					// Persist to ./data
+						const jsonPath = `./data/${id}/${relativePath}.json`;
+						await fs.outputJSON(jsonPath, jsons);
+					} catch (error) {
+						console.log("Skip over this invalid json");
+					}
+				});
+				promises.push(promise);
+			}
+		});
+	// Wait till all `file.async` have resolved in `forEach()`.
+		return Promise.allSettled(promises).then(() => {
+			if (fs.existsSync("./data")) {
+				const filesInDataDir = fs.readdirSync("./data");
+				ids.push(...filesInDataDir);
+			}
+			if (dataset.get(id)?.length === 0) {
+				throw new InsightError("No valid sections in dataset!");
+			}
+			return ids;
+		});
+	} catch (error) {
+		throw new InsightError(error as string);
+	}
+}
+
+function setSections(sections: Array<{[key: string]: any}>): Section[] {
+	let ans: Section[] = [];
+	sections.forEach((e: any) => {
+		let year: number = e.Year;
+		if (e.Section === "overall") {
+			year = 1900;
+		}
+		const s: Section = new Section(
+			e.Subject,
+			e.Course,
+			e.Avg,
+			e.Professor,
+			e.Title,
+			e.Pass,
+			e.Fail,
+			e.Audit,
+			e.id,
+			year
+		);
+		ans.push(s);
+	});
+	return ans;
+}
+
+
+export {getSectionField, handleSComparison, handleMComparison, addCourses, setSections};

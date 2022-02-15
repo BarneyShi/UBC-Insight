@@ -10,8 +10,9 @@ import {
 import Section from "../model/Section";
 import JSZip from "jszip";
 import * as fs from "fs-extra";
+import * as parse5 from "parse5";
 // import section from "../model/Section";
-import {getSectionField, handleSComparison, handleMComparison} from "./InsightFacadeUtil";
+import {getSectionField, handleSComparison, handleMComparison, addCourses} from "./InsightFacadeUtil";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -34,7 +35,13 @@ export default class InsightFacade implements IInsightFacade {
 			const jsZip = new JSZip();
 			let zips = await jsZip.loadAsync(content, {base64: true});
 
-			return this.addCourses(id, zips);
+			if (kind === InsightDatasetKind.Courses) {
+				const courses = addCourses(id, zips, this.dataset);
+				return courses;
+			} else {
+				const rooms = this.addRooms(id, zips);
+				return rooms;
+			}
 		} catch (error) {
 			throw new InsightError(error as string);
 		}
@@ -121,75 +128,13 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	private async addCourses(id: string, zips: JSZip): Promise<string[]> {
 
-		// Check if root dir has 'courses/'
-		if (!zips.files["courses/"]) {
-			throw new Error("Root dir doesn't have a courses/ folder.");
+	private addRooms(id: string, zips: JSZip): Promise<string[]> {
+		if (!zips.files["rooms/"] || !zips.files["rooms/index.htm"]) {
+			throw new Error("Zip doesn't have rooms/ or index.htm file.");
 		}
-		// Add dataset to Map() and /data folder.
-		let promises: Array<Promise<void>> = [];
-		let ids: string[] = [];
-		zips.forEach((relativePath, file) => {
-			if (relativePath.match(/^courses/g) !== null) {
-				const promise = file.async("text").then(async (data) => {
-					let jsons;
-					try {
-						jsons = JSON.parse(data);
-						this.dataset.get(id)?.push(...this.setSections(jsons.result));
-						// Persist to ./data
-						const jsonPath = `./data/${id}/${relativePath}.json`;
-						await fs.outputJSON(jsonPath, jsons);
-					} catch (error) {
-						console.log("Skip over this invalid json");
-					}
-				});
-				promises.push(promise);
-			}
-		});
-		// Wait till all `file.async` have resolved in `forEach()`.
-		return Promise.allSettled(promises).then(() => {
-			if (fs.existsSync("./data")) {
-				const filesInDataDir = fs.readdirSync("./data");
-				ids.push(...filesInDataDir);
-			}
-			if (this.dataset.get(id)?.length === 0) {
-				throw new InsightError("No valid sections in dataset!");
-			}
-			return ids;
-		});
+		return Promise.resolve([]);
 	}
-
-	private setSections(sections: Array<{[key: string]: any}>): Section[] {
-		let ans: Section[] = [];
-		sections.forEach((e: any) => {
-			let year: number = e.Year;
-			if (e.Section === "overall") {
-				year = 1900;
-			}
-			const s: Section = new Section(
-				e.Subject,
-				e.Course,
-				e.Avg,
-				e.Professor,
-				e.Title,
-				e.Pass,
-				e.Fail,
-				e.Audit,
-				e.id,
-				year
-			);
-			ans.push(s);
-		});
-		return ans;
-	}
-
-	// private async addRooms(id: string, zips: JSZip) {
-	// 	// Check if root dir has 'rooms/'
-	// 	if (!zips.files["rooms/"]) {
-	// 		throw new Error("Root dir doesn't have a rooms/ folder.");
-	// 	}
-	// }
 
 	private handleWhere(clause: object, idstring: string): Section[] | undefined {
 		let where: {[key: string]: any} = clause as {[key: string]: any};
