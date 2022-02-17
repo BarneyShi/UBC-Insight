@@ -121,19 +121,22 @@ function findRooms(nodes: {[key: string]: any}, zips: JSZip): Promise<Room[]> {
 			if (roomDetails.length !== 0) {
 				const coordPromise = findRoomCoords(address).then((coords) => {
 					if (!coords["error"]) {
-						const newRoom = new Room(
-							fullName,
-							shortName,
-							roomDetails.number,
-							address,
-							coords.lat,
-							coords.lon,
-							roomDetails.seats,
-							roomDetails.type,
-							roomDetails.furniture,
-							roomDetails.href
-						);
-						rooms.push(newRoom);
+						for (const room of roomDetails) {
+							const newRoom = new Room(
+								fullName,
+								shortName,
+								room.number,
+								address,
+								coords.lat,
+								coords.lon,
+								room.seats,
+								room.type,
+								room.furniture,
+								room.roomHref
+							);
+							// console.log("Found a room", newRoom);
+							rooms.push(newRoom);
+						}
 					}
 				});
 				return Promise.allSettled([coordPromise]);
