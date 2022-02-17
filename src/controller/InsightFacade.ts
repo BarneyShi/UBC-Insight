@@ -33,11 +33,11 @@ export default class InsightFacade implements IInsightFacade {
 		try {
 			this.checkDatasetID(id);
 
-			this.dataset.set(id, []);
 			const jsZip = new JSZip();
 			let zips = await jsZip.loadAsync(content, {base64: true});
 
 			if (kind === InsightDatasetKind.Courses) {
+				this.dataset.set(id, []);
 				const courses = await addCourses(id, zips, this.dataset);
 				return courses;
 			} else {
@@ -57,7 +57,12 @@ export default class InsightFacade implements IInsightFacade {
 		if (!fs.existsSync("./data") || (fs.existsSync("./data") && !fs.readdirSync("./data").includes(id))) {
 			throw new NotFoundError("Dataset not found.");
 		}
-		this.dataset.delete(id);
+		if (this.dataset.has(id)) {
+			this.dataset.delete(id);
+		}
+		if (this.roomDataset.has(id)) {
+			this.roomDataset.delete(id);
+		}
 		return fs.remove(`./data/${id}`).then(() => id);
 	}
 
@@ -115,6 +120,10 @@ export default class InsightFacade implements IInsightFacade {
 		let res: InsightDataset[] = [];
 		for (const [key, val] of this.dataset) {
 			const d: InsightDataset = {id: key, kind: InsightDatasetKind.Courses, numRows: val.length};
+			res.push(d);
+		}
+		for (const [key, val] of this.roomDataset) {
+			const d: InsightDataset = {id: key, kind: InsightDatasetKind.Rooms, numRows: val.length};
 			res.push(d);
 		}
 		return Promise.resolve(res);

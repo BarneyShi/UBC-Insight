@@ -38,6 +38,7 @@ async function addCourses(id: string, zips: JSZip, dataset: Map<string, Section[
 			ids.push(...filesInDataDir);
 		}
 		if (dataset.get(id)?.length === 0) {
+			dataset.delete(id);
 			throw new InsightError("No valid sections in dataset!");
 		}
 		return ids;
@@ -74,6 +75,7 @@ async function addRooms(id: string, zips: JSZip, dataset: Map<string, Room[]>): 
 			ids.push(...filesInDataDir);
 		}
 		if (dataset.get(id)?.length === 0) {
+			dataset.delete(id);
 			throw new InsightError("No valid sections in dataset!");
 		}
 		return ids;
@@ -203,39 +205,47 @@ function findTargetAttrUnderTag(tag: {[key: string]: any}, tagName: string, tdCl
 }
 
 function findRoomDetail(href: string, zips: JSZip): Promise<Array<{[key: string]: any}>> {
-	let promises: Array<Promise<void>> = [];
-	let rooms: Array<{[key: string]: any}> = [];
-	const path = `rooms${href.slice(1)}`;
-	zips.forEach((relativePath, file) => {
-		if (relativePath === path) {
-			const promise = file.async("text").then(async (data) => {
-				const root = parse5.parse(data);
-				const roomTargetTRs = findTargetTag(root, "tr", "");
-				for (let roomTR of roomTargetTRs) {
-					let number: string = findTargetAttrUnderTag(roomTR, "#text", "views-field-field-room-number");
-					if (!number) {
-						continue;
+	try {
+		let promises: Array<Promise<void>> = [];
+		let rooms: Array<{[key: string]: any}> = [];
+		const path = `rooms${href.slice(1)}`;
+		zips.forEach((relativePath, file) => {
+			if (relativePath === path) {
+				const promise = file.async("text").then(async (data) => {
+					const root = parse5.parse(data);
+					const roomTargetTRs = findTargetTag(root, "tr", "");
+					for (let roomTR of roomTargetTRs) {
+						let number: string = findTargetAttrUnderTag(roomTR, "#text", "views-field-field-room-number");
+						if (!number) {
+							continue;
+						}
+						number = tidyOutput(number);
+						let seats: number = 0;
+						let seatsRes: string = findTargetAttrUnderTag(
+							roomTR,
+							"#text",
+							"views-field-field-room-capacity"
+						);
+						if (seatsRes) {
+							seatsRes = tidyOutput(seatsRes);
+							seats = parseInt(seatsRes, 10);
+						}
+						let furniture = findTargetAttrUnderTag(roomTR, "#text", "views-field-field-room-furniture");
+						furniture = tidyOutput(furniture);
+						let type = findTargetAttrUnderTag(roomTR, "#text", "views-field-field-room-type");
+						type = tidyOutput(type);
+						let roomHref = findTargetAttrUnderTag(roomTR, "a", "views-field-nothing");
+						roomHref = tidyOutput(roomHref);
+						rooms.push({number, furniture, seats, type, roomHref});
 					}
-					number = tidyOutput(number);
-					let seats: number = 0;
-					let seatsRes: string = findTargetAttrUnderTag(roomTR, "#text", "views-field-field-room-capacity");
-					if (seatsRes) {
-						seatsRes = tidyOutput(seatsRes);
-						seats = parseInt(seatsRes, 10);
-					}
-					let furniture = findTargetAttrUnderTag(roomTR, "#text", "views-field-field-room-furniture");
-					furniture = tidyOutput(furniture);
-					let type = findTargetAttrUnderTag(roomTR, "#text", "views-field-field-room-type");
-					type = tidyOutput(type);
-					let roomHref = findTargetAttrUnderTag(roomTR, "a", "views-field-nothing");
-					roomHref = tidyOutput(roomHref);
-					rooms.push({number, furniture, seats, type, roomHref});
-				}
-			});
-			promises.push(promise);
-		}
-	});
-	return Promise.allSettled(promises).then(() => rooms);
+				});
+				promises.push(promise);
+			}
+		});
+		return Promise.allSettled(promises).then(() => rooms);
+	} catch (error) {
+		return Promise.resolve([]);
+	}
 }
 
 function findRoomCoords(address: string): Promise<{[key: string]: any}> {
