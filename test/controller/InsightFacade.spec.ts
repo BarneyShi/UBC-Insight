@@ -14,7 +14,7 @@ import {folderTest} from "@ubccpsc310/folder-test";
 import {expect, use} from "chai";
 import chaiAsPromised from "chai-as-promised";
 use(chaiAsPromised);
-import {clearDisk, getContentFromArchives} from "../TestUtil";
+import {getContentFromArchives} from "../TestUtil";
 
 describe("InsightFacade", function () {
 	let insightFacade: InsightFacade;
@@ -28,6 +28,9 @@ describe("InsightFacade", function () {
 		courses: "./test/resources/archives/courses.zip",
 		rooms: "./test/resources/archives/rooms.zip",
 		roomsWithoutIndex: "./test/resources/archives/roomsWithoutIndex.zip",
+		roomWithInvalidIndexHTML: "./test/resources/archives/roomWithInvalidIndexHTML.zip",
+		hasNoValidRooms: "./test/resources/archives/hasNoValidRooms.zip",
+		hasSomeInvalidRooms: "./test/resources/archives/hasSomeInvalidRooms.zip",
 	};
 
 	before(function () {
@@ -64,7 +67,7 @@ describe("InsightFacade", function () {
 		});
 
 		// This is a unit test. You should create more like this!
-		it.skip("Should add a valid dataset", function () {
+		it("Should add a valid dataset", function () {
 			const id: string = "courses";
 			const content: string = datasetContents.get("courses") ?? "";
 			const expected: string[] = [id];
@@ -73,7 +76,7 @@ describe("InsightFacade", function () {
 			});
 		});
 
-		it.skip("Should fail with no index.htm", async function () {
+		it("Should fail with no index.htm", async function () {
 			try {
 				const content: string = datasetContents.get("roomsWithoutIndex") ?? "";
 				await insightFacade.addDataset("rooms", content, InsightDatasetKind.Rooms);
@@ -91,6 +94,69 @@ describe("InsightFacade", function () {
 				expect(result).to.deep.equal(expected);
 			});
 		});
+
+		it("Should add a valid ROOM and a Course dataset", async function () {
+			const roomContent = datasetContents.get("rooms") ?? "";
+			const courseContent = datasetContents.get("courses") ?? "";
+			await insightFacade.addDataset("rooms", roomContent, InsightDatasetKind.Rooms);
+			const ids = await insightFacade.addDataset("courses", courseContent, InsightDatasetKind.Courses);
+			expect(ids).to.have.members(["rooms", "courses"]);
+		});
+
+		it("Should throw error when there is no index.htm", async function () {
+			try {
+				const content = datasetContents.get("roomsWithoutIndex") ?? "";
+				await insightFacade.addDataset("rooms", content, InsightDatasetKind.Rooms);
+				expect.fail("Should have thrown an error!");
+			} catch (error) {
+				expect(error).to.be.instanceOf(InsightError);
+			}
+		});
+
+		it("Should thrown error when index.htm is not a valid html", async function () {
+			try {
+				const content = datasetContents.get("roomWithInvalidIndexHTML") ?? "";
+				await insightFacade.addDataset("rooms", content, InsightDatasetKind.Rooms);
+				expect.fail("Should have thrown an error");
+			} catch (error) {
+				expect(error).to.be.instanceOf(InsightError);
+			}
+		});
+
+		it("Should throw an error with no valid rooms", async function () {
+			try {
+				const content = datasetContents.get("hasNoValidRooms") ?? "";
+				await insightFacade.addDataset("rooms", content, InsightDatasetKind.Rooms);
+				expect.fail("Should have thrown an error");
+			} catch (error) {
+				expect(error).to.be.instanceOf(InsightError);
+			}
+		});
+
+		it("Should skip invalid rooms", async function () {
+			const roomContent = datasetContents.get("hasSomeInvalidRooms") ?? "";
+			await insightFacade.addDataset("rooms", roomContent, InsightDatasetKind.Rooms);
+			const datasets = await insightFacade.listDatasets();
+			expect(datasets).to.deep.equal([{
+				id: "rooms",
+				kind: InsightDatasetKind.Rooms,
+				numRows: 10,
+			}]);
+		});
+
+		it("Should remove dataset", async function () {
+			const roomContent = datasetContents.get("rooms") ?? "";
+			await insightFacade.addDataset("rooms", roomContent, InsightDatasetKind.Rooms);
+			const dataset = await insightFacade.listDatasets();
+			expect(dataset).to.deep.equal([{
+				id: "rooms",
+				kind: InsightDatasetKind.Rooms,
+				numRows: 364,
+			}]);
+			await insightFacade.removeDataset("rooms");
+			const dataset2 = await insightFacade.listDatasets();
+			expect(dataset2).to.deep.equal([]);
+		});
 	});
 
 	/*
@@ -98,7 +164,7 @@ describe("InsightFacade", function () {
 	 * You should not need to modify it; instead, add additional files to the queries directory.
 	 * You can still make tests the normal way, this is just a convenient tool for a majority of queries.
 	 */
-	describe.skip("PerformQuery", () => {
+	describe("PerformQuery", () => {
 		before(function () {
 			console.info(`Before: ${this.test?.parent?.title}`);
 
@@ -141,11 +207,11 @@ describe("InsightFacade", function () {
 			}
 		);
 	});
-	describe.skip("List Datasets", function () {
+	describe("List Datasets", function () {
 		let facade: IInsightFacade = new InsightFacade();
 		let courses = getContentFromArchives("courses.zip");
 		beforeEach(function () {
-			clearDisk();
+			fs.removeSync(persistDir);
 			facade = new InsightFacade();
 		});
 
@@ -171,11 +237,25 @@ describe("InsightFacade", function () {
 				});
 		});
 
+		it("Should list one rooms dataset", async function() {
+			const roomContent = datasetContents.get("rooms") ?? "";
+			await facade.addDataset("rooms", roomContent, InsightDatasetKind.Rooms);
+			const dataset = await facade.listDatasets();
+			expect(dataset).to.deep.equal([{
+				id: "rooms",
+				kind: InsightDatasetKind.Rooms,
+				numRows: 364,
+			}]);
+		});
+
 		it("should list several datasets", function () {
 			return facade
 				.addDataset("courses", courses, InsightDatasetKind.Courses)
 				.then(() => {
 					return facade.addDataset("courses-2", courses, InsightDatasetKind.Courses);
+				})
+				.then(() => {
+					return facade.addDataset("rooms", datasetContents.get("rooms") ?? "", InsightDatasetKind.Rooms);
 				})
 				.then(() => {
 					return facade.listDatasets();
@@ -192,11 +272,16 @@ describe("InsightFacade", function () {
 							kind: InsightDatasetKind.Courses,
 							numRows: 64612,
 						},
+						{
+							id: "rooms",
+							kind: InsightDatasetKind.Rooms,
+							numRows: 364,
+						},
 					];
 
 					expect(insightDatasets).to.be.an.instanceof(Array);
 					expect(insightDatasets).to.have.deep.members(expectedDatasets);
-					expect(insightDatasets).to.have.length(2);
+					expect(insightDatasets).to.have.length(3);
 				});
 		});
 	});
