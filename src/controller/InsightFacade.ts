@@ -10,9 +10,8 @@ import {
 import Section from "../model/Section";
 import JSZip from "jszip";
 import * as fs from "fs-extra";
-import * as parse5 from "parse5";
 // import section from "../model/Section";
-import {getSectionField, handleSComparison, handleMComparison, addCourses} from "./InsightFacadeUtil";
+import {getSectionField, handleSComparison, handleMComparison, addCourses, addRooms} from "./InsightFacadeUtil";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -36,10 +35,10 @@ export default class InsightFacade implements IInsightFacade {
 			let zips = await jsZip.loadAsync(content, {base64: true});
 
 			if (kind === InsightDatasetKind.Courses) {
-				const courses = addCourses(id, zips, this.dataset);
+				const courses = await addCourses(id, zips, this.dataset);
 				return courses;
 			} else {
-				const rooms = this.addRooms(id, zips);
+				const rooms = await addRooms(id, zips, this.dataset);
 				return rooms;
 			}
 		} catch (error) {
@@ -126,14 +125,6 @@ export default class InsightFacade implements IInsightFacade {
 		) {
 			throw new Error("Invalid id or dataset exists.");
 		}
-	}
-
-
-	private addRooms(id: string, zips: JSZip): Promise<string[]> {
-		if (!zips.files["rooms/"] || !zips.files["rooms/index.htm"]) {
-			throw new Error("Zip doesn't have rooms/ or index.htm file.");
-		}
-		return Promise.resolve([]);
 	}
 
 	private handleWhere(clause: object, idstring: string): Section[] | undefined {
