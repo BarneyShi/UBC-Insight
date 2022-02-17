@@ -10,9 +10,9 @@ import {
 import Section from "../model/Section";
 import JSZip from "jszip";
 import * as fs from "fs-extra";
-// import section from "../model/Section";
-import {getSectionField, handleSComparison, handleMComparison, addCourses, addRooms} from "./InsightFacadeUtil";
-
+import Room from "../model/Room";
+import {getSectionField, handleSComparison, handleMComparison} from "./InsightFacadeUtil";
+import {addCourses, addRooms} from "./addDatasetUtil";
 /**
  * This is the main programmatic entry point for the project.
  * Method documentation is in IInsightFacade
@@ -20,9 +20,12 @@ import {getSectionField, handleSComparison, handleMComparison, addCourses, addRo
  */
 export default class InsightFacade implements IInsightFacade {
 	private dataset: Map<string, Section[]>;
+	private roomDataset: Map<string, Room[]>;
 
 	constructor() {
+		// TODO change name to courseDataset
 		this.dataset = new Map<string, Section[]>();
+		this.roomDataset = new Map<string, Room[]>();
 		console.log("InsightFacadeImpl::init()");
 	}
 
@@ -38,7 +41,7 @@ export default class InsightFacade implements IInsightFacade {
 				const courses = await addCourses(id, zips, this.dataset);
 				return courses;
 			} else {
-				const rooms = await addRooms(id, zips, this.dataset);
+				const rooms = await addRooms(id, zips, this.roomDataset);
 				return rooms;
 			}
 		} catch (error) {
