@@ -11,7 +11,6 @@ import Section from "../model/Section";
 import JSZip from "jszip";
 import * as fs from "fs-extra";
 import Room from "../model/Room";
-import {getSectionField, handleSComparison, handleMComparison} from "./InsightFacadeUtil";
 import {addCourses, addRooms} from "./addDatasetUtil";
 /**
  * This is the main programmatic entry point for the project.
@@ -69,18 +68,29 @@ export default class InsightFacade implements IInsightFacade {
 	public performQuery(query: unknown): Promise<InsightResult[]> {
 		try {
 			let result: InsightResult[] = [{incorrect: "result"}];
+			// define query variable
 			if (typeof query === "object") {
 				if (query == null) {
 					throw new InsightError("query is null or undefined");
 				}
 				let queryCast: {[key: string]: any} = query as {[key: string]: any};
+				// define query 1st level keys
 				let where = queryCast["WHERE"];
 				let options = queryCast["OPTIONS"];
-				if (where == null || options == null || Object.keys(queryCast).length !== 2) {
-					throw new InsightError("incorrect first level keys");
+				let transformations = queryCast["TRANSFORMATIONS"];
+				if (where == null || options == null) {
+					throw new InsightError("no where or no options");
 				}
-				// get id string
-				// works because columns must be non-empty array
+				// if (transformations == null) {
+				// 	if (Object.keys(queryCast).length !== 2) {
+				// 		throw new InsightError("incorrect number of first lvl keys");
+				// 	}
+				// } else {
+				// 	if (Object.keys(queryCast).length !== 3) {
+				// 		throw new InsightError("incorrect number of first lvl keys");
+				// 	}
+				// }
+				// get id string: works because columns must be non-empty array
 				if (options["COLUMNS"] == null) {
 					throw new InsightError("no columns");
 				}
@@ -91,13 +101,15 @@ export default class InsightFacade implements IInsightFacade {
 				if (idstring == null || idstring === "" || /\s/g.test(idstring)) {
 					throw new InsightError("invalid idstring");
 				}
-				// handling where clause
-				let queriedData: Section[] | undefined;
+				// handling each key
+				let queriedData: Section[] | Room[] | undefined;
 				queriedData = this.handleWhere(where, idstring);
 				if (queriedData == null) {
 					throw new InsightError("queriedData is null");
 				}
-				result = this.handleOptions(options, queriedData, idstring);
+				let transformedData: Section[] | Room[] | undefined;
+				// transformedData = this.handleTransformations(transformations, queriedData, idstring);
+				result = this.handleOptions(options, transformedData, idstring);
 			} else {
 				throw new InsightError("invalid query type");
 			}
@@ -106,9 +118,9 @@ export default class InsightFacade implements IInsightFacade {
 			if (error instanceof ResultTooLargeError) {
 				throw new ResultTooLargeError("result is too large");
 			} else if (error instanceof InsightError) {
-				throw new InsightError("string for now");
+				throw new InsightError(error.message);
 			} else {
-				throw new InsightError("Uncaught error");
+				throw new InsightError(error as string);
 			}
 		}
 	}
@@ -139,16 +151,21 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	private handleWhere(clause: object, idstring: string): Section[] | undefined {
+	private handleWhere(clause: object, idstring: string): Section[] | Room[] | undefined {
 		let where: {[key: string]: any} = clause as {[key: string]: any};
-		return this.dataset.get(idstring)?.filter((obj) => {
-			return this.handleWhereOperation(where, obj, idstring);
-		});
+		if (this.dataset.get(idstring)) {
+			return this.dataset.get(idstring)?.filter((obj) => {
+				return this.handleWhereOperation(where, obj, idstring);
+			});
+		} else if (this.roomDataset.get(idstring)) {
+			return this.roomDataset.get(idstring)?.filter((obj) => {
+				return this.handleWhereOperation(where, obj, idstring);
+			});
+		}
+		return undefined;
 	}
 
-	private handleWhereOperation(where: {[p: string]: any}, obj: Section, idstr: string): boolean {
-		let mfield: string[] = ["avg", "pass", "fail", "audit", "year"];
-		let sfield: string[] = ["dept", "id", "instructor", "title", "uuid"];
+	private handleWhereOperation(where: {[p: string]: any}, obj: Section | Room, idstr: string): boolean {
 		if (Object.keys(where).length === 0) {
 			return true;
 		} else if (Object.keys(where).length > 1) {
@@ -162,16 +179,16 @@ export default class InsightFacade implements IInsightFacade {
 				return this.handleLogicComparison("OR", where, obj, idstr);
 			}
 			case "LT": {
-				return handleMComparison("LT", where, idstr, mfield, obj);
+				return obj.handleMComparison("LT", where, idstr);
 			}
 			case "GT": {
-				return handleMComparison("GT", where, idstr, mfield, obj);
+				return obj.handleMComparison("GT", where, idstr);
 			}
 			case "EQ": {
-				return handleMComparison("EQ", where, idstr, mfield, obj);
+				return obj.handleMComparison("EQ", where, idstr);
 			}
 			case "IS": {
-				return handleSComparison(where, idstr, sfield, obj);
+				return obj.handleSComparison(where, idstr);
 			}
 			case "NOT": {
 				return !this.handleWhereOperation(where["NOT"], obj, idstr);
@@ -182,7 +199,7 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	private handleLogicComparison(logicOp: string, where: {[p: string]: any}, obj: Section, idstr: string) {
+	private handleLogicComparison(logicOp: string, where: {[p: string]: any}, obj: Section | Room, idstr: string) {
 		let result: boolean;
 		// source: https://stackoverflow.com/questions/24403732/how-to-check-if-array-is-empty-or-does-not-exist
 		if (!Array.isArray(where[logicOp]) || !where[logicOp].length) {
@@ -202,7 +219,7 @@ export default class InsightFacade implements IInsightFacade {
 		return result;
 	}
 
-	private handleOptions(clause: object, data: Section[], idstr: string): InsightResult[] {
+	private handleOptions(clause: object, data: Section[] | Room[] | undefined, idstr: string): InsightResult[] {
 		let options: {[key: string]: any} = clause as {[key: string]: any};
 		let columns = options["COLUMNS"];
 		let order = options["ORDER"];
@@ -218,7 +235,7 @@ export default class InsightFacade implements IInsightFacade {
 				if (idstring !== idstr) {
 					throw new InsightError("references multiple datasets");
 				}
-				obj[key] = getSectionField(sec,field);
+				obj[key] = sec.getSectionField(field);
 			}
 			ret.push(obj);
 		});
@@ -236,4 +253,33 @@ export default class InsightFacade implements IInsightFacade {
 		}
 		return ret;
 	}
+	//
+	// private handleTransformations(clause: any, queriedData: Section[], idstring: string): Section[] | Room[] | undefined {
+	//
+	// 	if (clause == null) {
+	// 		return queriedData;
+	// 	}
+	// 	let transformations: {[key: string]: any} = clause as {[key: string]: any};
+	//
+	// 	// define transformation keys
+	// 	let group = transformations["GROUP"];
+	// 	let apply = transformations["APPLY"];
+	// 	if (group == null || apply == null || Object.keys(transformations).length !== 2) {
+	// 		throw new InsightError("incorrect transformation keys");
+	// 	}
+	//
+	// 	if (!Array.isArray(group) || !group.length) {
+	// 		throw new InsightError("No key in group");
+	// 	}
+	//
+	// 	// source: https://stackoverflow.com/questions/40774697/how-can-i-group-an-array-of-objects-by-key
+	// 	// let groupedData = queriedData.reduce(function (r, a) {
+	// 	// 	r[a[]] = r[a.make] || [];
+	// 	// 	r[a.make].push(a);
+	// 	// 	return r;
+	// 	// }, Object.create(null));
+	//
+	//
+	// 	return queriedData;
+	// }
 }
