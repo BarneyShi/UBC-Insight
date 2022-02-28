@@ -1,4 +1,8 @@
-class Section {
+import Room from "./Room";
+import {InsightError} from "../controller/IInsightFacade";
+import {Data} from "./Data";
+
+class Section implements Data {
 	private readonly _dept: string;
 	private readonly _id: string;
 	private readonly _avg: number;
@@ -72,6 +76,99 @@ class Section {
 
 	public get year(): number {
 		return this._year;
+	}
+
+	public handleMComparison(
+		mComparator: string, where: {[p: string]: any}, idstr: string) {
+		let mfield: string[] = ["avg", "pass", "fail", "audit", "year"];
+		let mkey: string[] = Object.keys(where[mComparator])[0].split("_");
+		let [idstring, field] = mkey;
+		if (idstring !== idstr) {
+			throw new InsightError("references multiple datasets");
+		}
+		if (!(typeof where[mComparator][Object.keys(where[mComparator])[0]] === "number")) {
+			throw new InsightError("invalid mcomparator type");
+		}
+		if (!mfield.includes(field)) {
+			throw new InsightError("not an mfield");
+		}
+		if (mComparator === "GT") {
+			return this.getSectionField(field) > where[mComparator][Object.keys(where[mComparator])[0]];
+		} else if (mComparator === "LT") {
+			return this.getSectionField(field) < where[mComparator][Object.keys(where[mComparator])[0]];
+		} else {
+			return this.getSectionField(field) === where[mComparator][Object.keys(where[mComparator])[0]];
+		}
+	}
+
+	public handleSComparison(where: {[p: string]: any}, idstr: string) {
+		let sfield: string[] = ["dept", "id", "instructor", "title", "uuid"];
+		let mkey: string[] = Object.keys(where["IS"])[0].split("_");
+		let [idstring, field] = mkey;
+		if (idstring !== idstr) {
+			throw new InsightError("references multiple datasets");
+		}
+		let strMatch: string = where["IS"][Object.keys(where["IS"])[0]];
+		if (strMatch == null) {
+			throw new InsightError("invalid skey type");
+		}
+		if (!sfield.includes(field)) {
+			throw new InsightError("not an mfield");
+		}
+		if ((strMatch.match(/\*/g) || []).length > 2 ||
+			(strMatch.includes("*") && !strMatch.split("*").includes(""))) {
+			throw new InsightError("asterisk issues");
+		}
+		let regMatch = new RegExp("^" + strMatch.replace(/\*/g, ".*") + "$");
+		return regMatch.test(this.getSectionField(field).toString());
+	}
+
+
+	// public groupDataHelper(r: Section, groupKey: string): Section {
+	// 	{
+	// 		r.getSectionField(this.getSectionField(groupKey)) = r[this.getSectionField(groupKey)] || [];
+	// 		r[this.getSectionField(groupKey)].push(this);
+	// 		return r;
+	// 	}, Object.create(null));
+	// }
+
+
+	public getSectionField(field: string): number | string {
+		switch (field) {
+			case "avg": {
+				return this.avg;
+			}
+			case "pass": {
+				return this.pass;
+			}
+			case "fail": {
+				return this.fail;
+			}
+			case "audit": {
+				return this.audit;
+			}
+			case "year": {
+				return Number(this.year);
+			}
+			case "dept": {
+				return this.dept;
+			}
+			case "id": {
+				return this.id;
+			}
+			case "instructor": {
+				return this.instructor;
+			}
+			case "title": {
+				return this.title;
+			}
+			case "uuid": {
+				return this.uuid.toString();
+			}
+			default: {
+				throw new InsightError("Invalid field");
+			}
+		}
 	}
 }
 

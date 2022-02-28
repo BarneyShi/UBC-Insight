@@ -1,0 +1,27 @@
+{
+	"title": "order key must be in columns",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"rooms_furniture": "*Tables*"
+					}
+				},
+				{
+					"GT": {
+						"rooms_seats": 300
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_shortname"
+			],
+			"ORDER": "rooms_seats"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

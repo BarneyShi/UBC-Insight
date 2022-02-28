@@ -1,0 +1,54 @@
+{
+	"title": "key in group not in columns",
+	"input": {
+		"WHERE": {
+			"OR": [
+				{
+					"AND": [
+						{
+							"GT": {
+								"courses_avg": 92
+							}
+						},
+						{
+							"IS": {
+								"courses_dept": "adhe"
+							}
+						}
+					]
+				},
+				{
+					"EQ": {
+						"courses_avg": 61
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"courses_dept",
+				"maxAverage"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"courses_dept"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"c_dept"
+			],
+			"APPLY": [
+				{
+					"maxAverage": {
+						"MAX": "courses_avg"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

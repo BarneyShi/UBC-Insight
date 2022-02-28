@@ -1,0 +1,43 @@
+{
+	"title": "courses query with new order",
+	"input": {
+		"WHERE": {
+			"OR": [
+				{
+					"AND": [
+						{
+							"GT": {
+								"courses_avg": 92
+							}
+						},
+						{
+							"IS": {
+								"courses_dept": "adhe"
+							}
+						}
+					]
+				},
+				{
+					"EQ": {
+						"courses_avg": 61
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"courses_dept",
+				"courses_id",
+				"courses_avg"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"courses_dept"
+				]
+			}
+		}
+	},
+	"errorExpected": false,
+	"expected": [{"courses_dept":"wood","courses_id":"475","courses_avg":61},{"courses_dept":"mtrl","courses_id":"280","courses_avg":61},{"courses_dept":"mtrl","courses_id":"280","courses_avg":61},{"courses_dept":"ital","courses_id":"102","courses_avg":61},{"courses_dept":"frst","courses_id":"311","courses_avg":61},{"courses_dept":"frst","courses_id":"311","courses_avg":61},{"courses_dept":"eosc","courses_id":"114","courses_avg":61},{"courses_dept":"chbe","courses_id":"456","courses_avg":61},{"courses_dept":"adhe","courses_id":"329","courses_avg":93.33},{"courses_dept":"adhe","courses_id":"329","courses_avg":96.11},{"courses_dept":"adhe","courses_id":"329","courses_avg":92.54}]
+	}
