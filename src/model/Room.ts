@@ -1,6 +1,7 @@
 import {InsightError} from "../controller/IInsightFacade";
+import {Data} from "./Data";
 
-class Room {
+class Room implements Data {
 	private readonly _fullname: string;
 	private readonly _shortname: string;
 	private readonly _number: string;

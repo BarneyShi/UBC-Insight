@@ -1,0 +1,55 @@
+{
+	"title": "key in group not in columns",
+	"input": {
+		"WHERE": {
+			"OR": [
+				{
+					"AND": [
+						{
+							"GT": {
+								"courses_avg": 92
+							}
+						},
+						{
+							"IS": {
+								"courses_dept": "adhe"
+							}
+						}
+					]
+				},
+				{
+					"EQ": {
+						"courses_avg": 61
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"courses_dept",
+				"maxAverage"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"courses_dept"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"courses_dept",
+				"courses_pass"
+			],
+			"APPLY": [
+				{
+					"maxAverage": {
+						"MAX": "courses_avg"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [{"courses_dept":"wood","maxAverage":61},{"courses_dept":"mtrl","maxAverage":61},{"courses_dept":"ital","maxAverage":61},{"courses_dept":"frst","maxAverage":61},{"courses_dept":"eosc","maxAverage":61},{"courses_dept":"chbe","maxAverage":61},{"courses_dept":"adhe","maxAverage":93.33},{"courses_dept":"adhe","maxAverage":96.11},{"courses_dept":"adhe","maxAverage":92.54}]
+	}

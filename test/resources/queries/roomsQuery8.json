@@ -1,5 +1,5 @@
 {
-	"title": "rooms query",
+	"title": "SUM rooms query",
 	"input": {
 		"WHERE": {
 			"AND": [{
@@ -9,7 +9,7 @@
 			},
 				{
 				"GT": {
-					"rooms_seats": 300
+					"rooms_seats": 100
 				}
 			}]
 		},

@@ -1,0 +1,28 @@
+{
+	"title": "rooms query",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"rooms_furniture": "*Tables*"
+					}
+				},
+				{
+					"GT": {
+						"rooms_seats": 175
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_seats",
+				"rooms_shortname"
+			],
+			"ORDER": "rooms_seats"
+		}
+	},
+	"errorExpected": false,
+	"expected": [{"rooms_seats":183,"rooms_shortname":"LSK"},{"rooms_seats":187,"rooms_shortname":"SWNG"},{"rooms_seats":188,"rooms_shortname":"SWNG"},{"rooms_seats":190,"rooms_shortname":"SWNG"},{"rooms_seats":190,"rooms_shortname":"SWNG"},{"rooms_seats":200,"rooms_shortname":"CHBE"},{"rooms_seats":205,"rooms_shortname":"LSK"},{"rooms_seats":236,"rooms_shortname":"PHRM"},{"rooms_seats":260,"rooms_shortname":"ANGU"},{"rooms_seats":299,"rooms_shortname":"SRC"},{"rooms_seats":299,"rooms_shortname":"SRC"},{"rooms_seats":299,"rooms_shortname":"SRC"},{"rooms_seats":350,"rooms_shortname":"LSC"},{"rooms_seats":350,"rooms_shortname":"LSC"},{"rooms_seats":375,"rooms_shortname":"HEBB"},{"rooms_seats":442,"rooms_shortname":"OSBO"}]
+	}

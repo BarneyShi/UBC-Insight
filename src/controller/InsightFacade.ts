@@ -12,6 +12,9 @@ import JSZip from "jszip";
 import * as fs from "fs-extra";
 import Room from "../model/Room";
 import {addCourses, addRooms} from "./addDatasetUtil";
+import {Data} from "../model/Data";
+import Decimal from "decimal.js";
+import {handleApply, handleColumns, handleGroup, handleOrder, handleWhereOperation} from "./performQueryUtil";
 /**
  * This is the main programmatic entry point for the project.
  * Method documentation is in IInsightFacade
@@ -81,35 +84,25 @@ export default class InsightFacade implements IInsightFacade {
 				if (where == null || options == null) {
 					throw new InsightError("no where or no options");
 				}
-				// if (transformations == null) {
-				// 	if (Object.keys(queryCast).length !== 2) {
-				// 		throw new InsightError("incorrect number of first lvl keys");
-				// 	}
-				// } else {
-				// 	if (Object.keys(queryCast).length !== 3) {
-				// 		throw new InsightError("incorrect number of first lvl keys");
-				// 	}
-				// }
-				// get id string: works because columns must be non-empty array
-				if (options["COLUMNS"] == null) {
-					throw new InsightError("no columns");
-				}
-				if ((options["COLUMNS"][0].match(/_/g) || []).length !== 1) {
-					throw new InsightError("incorrect number of underscores");
-				}
-				let idstring: string = options["COLUMNS"][0].split("_")[0];
-				if (idstring == null || idstring === "" || /\s/g.test(idstring)) {
-					throw new InsightError("invalid idstring");
+				if (transformations == null) {
+					if (Object.keys(queryCast).length !== 2) {
+						throw new InsightError("incorrect number of first lvl keys");
+					}
+				} else {
+					if (Object.keys(queryCast).length !== 3) {
+						throw new InsightError("incorrect number of first lvl keys");
+					}
 				}
 				// handling each key
-				let queriedData: Section[] | Room[] | undefined;
+				let idstring: string = this.getIdString(transformations, options);
+				let queriedData: Data[] | undefined;
 				queriedData = this.handleWhere(where, idstring);
 				if (queriedData == null) {
 					throw new InsightError("queriedData is null");
 				}
-				let transformedData: Section[] | Room[] | undefined;
-				// transformedData = this.handleTransformations(transformations, queriedData, idstring);
-				result = this.handleOptions(options, transformedData, idstring);
+				let transformedData: InsightResult[] | undefined;
+				transformedData = this.handleTransformations(transformations, queriedData, idstring);
+				result = this.handleOptions(options, transformedData, idstring, transformations);
 			} else {
 				throw new InsightError("invalid query type");
 			}
@@ -124,6 +117,7 @@ export default class InsightFacade implements IInsightFacade {
 			}
 		}
 	}
+
 
 	public listDatasets(): Promise<InsightDataset[]> {
 		if (!fs.existsSync("./data")) {
@@ -151,135 +145,89 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	private handleWhere(clause: object, idstring: string): Section[] | Room[] | undefined {
+	// get id string: works because columns must be non-empty array
+	// if transformations !null, then group must be non-empty array
+	private getIdString(transformations: {[x: string]: any;} | null, options: {[x: string]: string[];}): string {
+		let idstring: string;
+		if (transformations == null) {
+			if (options["COLUMNS"] == null) {
+				throw new InsightError("no columns");
+			}
+			if ((options["COLUMNS"][0].match(/_/g) || []).length !== 1) {
+				throw new InsightError("incorrect number of underscores");
+			}
+			idstring = options["COLUMNS"][0].split("_")[0];
+			if (idstring == null || idstring === "" || /\s/g.test(idstring)) {
+				throw new InsightError("invalid idstring");
+			}
+		} else {
+			let group = transformations["GROUP"];
+			if (group == null) {
+				throw new InsightError("incorrect transformation keys");
+			}
+			if (!Array.isArray(group) || !group.length) {
+				throw new InsightError("No key in group");
+			}
+			idstring = group[0].split("_")[0];
+			if (idstring == null || idstring === "" || /\s/g.test(idstring)) {
+				throw new InsightError("invalid idstring");
+			}
+		}
+		return idstring;
+	}
+
+	private handleWhere(clause: object, idstring: string): Data[] | undefined {
 		let where: {[key: string]: any} = clause as {[key: string]: any};
 		if (this.dataset.get(idstring)) {
 			return this.dataset.get(idstring)?.filter((obj) => {
-				return this.handleWhereOperation(where, obj, idstring);
+				return handleWhereOperation(where, obj, idstring);
 			});
 		} else if (this.roomDataset.get(idstring)) {
 			return this.roomDataset.get(idstring)?.filter((obj) => {
-				return this.handleWhereOperation(where, obj, idstring);
+				return handleWhereOperation(where, obj, idstring);
 			});
 		}
 		return undefined;
 	}
 
-	private handleWhereOperation(where: {[p: string]: any}, obj: Section | Room, idstr: string): boolean {
-		if (Object.keys(where).length === 0) {
-			return true;
-		} else if (Object.keys(where).length > 1) {
-			throw new InsightError("where has too many filters");
-		}
-		switch (Object.keys(where)[0]) {
-			case "AND": {
-				return this.handleLogicComparison("AND", where, obj, idstr);
-			}
-			case "OR": {
-				return this.handleLogicComparison("OR", where, obj, idstr);
-			}
-			case "LT": {
-				return obj.handleMComparison("LT", where, idstr);
-			}
-			case "GT": {
-				return obj.handleMComparison("GT", where, idstr);
-			}
-			case "EQ": {
-				return obj.handleMComparison("EQ", where, idstr);
-			}
-			case "IS": {
-				return obj.handleSComparison(where, idstr);
-			}
-			case "NOT": {
-				return !this.handleWhereOperation(where["NOT"], obj, idstr);
-			}
-			default: {
-				throw new InsightError("invalid filter");
-			}
-		}
-	}
-
-	private handleLogicComparison(logicOp: string, where: {[p: string]: any}, obj: Section | Room, idstr: string) {
-		let result: boolean;
-		// source: https://stackoverflow.com/questions/24403732/how-to-check-if-array-is-empty-or-does-not-exist
-		if (!Array.isArray(where[logicOp]) || !where[logicOp].length) {
-			throw new InsightError("Logic has <1 filter");
-		}
-		if (logicOp === "AND") {
-			result = true;
-			for (let filter of where[logicOp]) {
-				result &&= this.handleWhereOperation(filter, obj, idstr);
-			}
-		} else {
-			result = false;
-			for (let filter of where[logicOp]) {
-				result ||= this.handleWhereOperation(filter, obj, idstr);
-			}
-		}
-		return result;
-	}
-
-	private handleOptions(clause: object, data: Section[] | Room[] | undefined, idstr: string): InsightResult[] {
+	private handleOptions(
+		clause: object, data: InsightResult[] | undefined, idstr: string, transformations: object): InsightResult[] {
+		// define options and transformations keys
 		let options: {[key: string]: any} = clause as {[key: string]: any};
+		let transform: {[key: string]: any} = transformations as {[key: string]: any};
 		let columns = options["COLUMNS"];
 		let order = options["ORDER"];
 		// source: https://stackoverflow.com/questions/24403732/how-to-check-if-array-is-empty-or-does-not-exist
 		if (!Array.isArray(columns) || !columns.length) {
 			throw new InsightError("No key in columns");
 		}
-		let ret: InsightResult[] = [];
-		data?.forEach((sec) => {
-			let obj: {[key: string]: any} = {};
-			for (let key of columns) {
-				let [idstring, field] = key.split("_");
-				if (idstring !== idstr) {
-					throw new InsightError("references multiple datasets");
-				}
-				obj[key] = sec.getSectionField(field);
-			}
-			ret.push(obj);
-		});
-		if ((Object.keys(options).length === 2) && order != null) {
-			if (!columns.includes(order)) {
-				throw new InsightError("order not in columns");
-			}
-			// source:https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
-			ret.sort((a,b) => (a[order] > b[order]) ? 1 : ((b[order] > a[order]) ? -1 : 0));
-		} else if (Object.keys(options).length > 1) {
-			throw new InsightError("Invalid keys in options");
-		}
+		let ret = handleColumns(transformations, transform, columns, data, idstr);
+		handleOrder(options, order, columns, ret);
 		if (ret.length > 5000) {
 			throw new ResultTooLargeError("TooLarge");
 		}
 		return ret;
 	}
-	//
-	// private handleTransformations(clause: any, queriedData: Section[], idstring: string): Section[] | Room[] | undefined {
-	//
-	// 	if (clause == null) {
-	// 		return queriedData;
-	// 	}
-	// 	let transformations: {[key: string]: any} = clause as {[key: string]: any};
-	//
-	// 	// define transformation keys
-	// 	let group = transformations["GROUP"];
-	// 	let apply = transformations["APPLY"];
-	// 	if (group == null || apply == null || Object.keys(transformations).length !== 2) {
-	// 		throw new InsightError("incorrect transformation keys");
-	// 	}
-	//
-	// 	if (!Array.isArray(group) || !group.length) {
-	// 		throw new InsightError("No key in group");
-	// 	}
-	//
-	// 	// source: https://stackoverflow.com/questions/40774697/how-can-i-group-an-array-of-objects-by-key
-	// 	// let groupedData = queriedData.reduce(function (r, a) {
-	// 	// 	r[a[]] = r[a.make] || [];
-	// 	// 	r[a.make].push(a);
-	// 	// 	return r;
-	// 	// }, Object.create(null));
-	//
-	//
-	// 	return queriedData;
-	// }
+
+	private handleTransformations(clause: any, queriedData: Data[], idstring: string): InsightResult[] | undefined {
+		if (clause == null) {
+			return queriedData as unknown as InsightResult[];
+		}
+		let transformations: {[key: string]: any} = clause as {[key: string]: any};
+		// define transformation keys
+		let group = transformations["GROUP"];
+		let apply: {[key: string]: any} = transformations["APPLY"] as {[key: string]: any};
+		if (group == null || apply == null || Object.keys(transformations).length !== 2) {
+			throw new InsightError("incorrect transformation keys");
+		}
+		if (!Array.isArray(group) || !group.length) {
+			throw new InsightError("No key in group");
+		}
+		if (!Array.isArray(apply)) {
+			throw new InsightError("apply not an array");
+		}
+		let groupedData = handleGroup(group, idstring, queriedData);
+		let ret = handleApply(apply, groupedData, group, idstring);
+		return ret;
+	}
 }

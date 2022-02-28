@@ -1,8 +1,8 @@
 import Room from "./Room";
 import {InsightError} from "../controller/IInsightFacade";
-import {getSectionField} from "../controller/InsightFacadeUtil";
+import {Data} from "./Data";
 
-class Section {
+class Section implements Data {
 	private readonly _dept: string;
 	private readonly _id: string;
 	private readonly _avg: number;
@@ -122,6 +122,16 @@ class Section {
 		let regMatch = new RegExp("^" + strMatch.replace(/\*/g, ".*") + "$");
 		return regMatch.test(this.getSectionField(field).toString());
 	}
+
+
+	// public groupDataHelper(r: Section, groupKey: string): Section {
+	// 	{
+	// 		r.getSectionField(this.getSectionField(groupKey)) = r[this.getSectionField(groupKey)] || [];
+	// 		r[this.getSectionField(groupKey)].push(this);
+	// 		return r;
+	// 	}, Object.create(null));
+	// }
+
 
 	public getSectionField(field: string): number | string {
 		switch (field) {
