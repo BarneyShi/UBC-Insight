@@ -159,8 +159,8 @@ function handleApply(apply: any[] | {[p: string]: any}, groupedData: Data, group
 }
 
 function handleGroup(group: any, idstring: string, queriedData: Data[]) {
-	let idstr: string[] = [...group.map((o: string) => o.split("_")[1])];
-	if (idstr.every((val, i, arr) => val === idstring)) {
+	let idstr: string[] = [...group.map((o: string) => o.split("_")[0])];
+	if (!(idstr.every((val) => val === idstring))) {
 		throw new InsightError("References multiple datasets in group");
 	}
 	let fieldsArr: string[] = [...group.map((o: string) => o.split("_")[1])];
