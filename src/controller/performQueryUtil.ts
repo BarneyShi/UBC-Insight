@@ -143,9 +143,9 @@ function handleApply(apply: any[] | {[p: string]: any}, groupedData: Data, group
 	}
 	for (let [key, value] of Object.entries(groupedData)) {
 		let newObj: {[key: string]: any} = {};
-		let keyArr: string[] = key.split("-");
-		for (let i = 0; i < group.length; i++) {
-			newObj[group[i]] = correctType(keyArr[i], group[i]);
+		// let keyArr: string[] = key.split("-");
+		for (let item of group) {
+			newObj[item] = value[0].getSectionField(item.split("_")[1]);
 		}
 		apply.forEach((obj: object) => {
 			if (Object.keys(obj).length !== 1) {
@@ -191,31 +191,33 @@ function handleApplyOp(obj: object, value: any, idstring: string): string | numb
 	field = "_" + field;
 	switch (op) {
 		case "MAX": {
-			if (!(typeof value[0][field] === "number")) {
+			if (!(value.every((dat: Data) => typeof dat.getSectionField(field.substring(1)) === "number"))) {
 				throw new InsightError("invalid key type in apply operation");
 			}
-			return Math.max(...value.map((o: {[x: string]: any;}) => o[field]));
+			return Math.max(...value.map((dat: Data) => dat.getSectionField(field.substring(1))));
 		}
 		case "MIN": {
-			if (!(typeof value[0][field] === "number")) {
+			if (!(value.every((dat: Data) => typeof dat.getSectionField(field.substring(1)) === "number"))) {
 				throw new InsightError("invalid key type in apply operation");
 			}
-			return Math.min(...value.map((o: {[x: string]: any;}) => o[field]));
+			return Math.min(...value.map((dat: Data) => dat.getSectionField(field.substring(1))));
 		}
 		case "AVG": {
-			if (!(typeof value[0][field] === "number")) {
+			if (!(value.every((dat: Data) => typeof dat.getSectionField(field.substring(1)) === "number"))) {
 				throw new InsightError("invalid key type in apply operation");
 			}
-			return calcAvg([...value.map((o: {[x: string]: any;}) => o[field])]);
+			return calcAvg([...value.map((dat: Data) => dat.getSectionField(field.substring(1)))]);
 		}
 		case "SUM": {
-			if (!(typeof value[0][field] === "number")) {
+			if (!(value.every((dat: Data) => typeof dat.getSectionField(field.substring(1)) === "number"))) {
 				throw new InsightError("invalid key type in apply operation");
 			}
-			return [...value.map((o: {[x: string]: any;}) => o[field])].reduce((sum: any, a: any) => sum + a, 0);
+			let sumOf = [...value.map((dat: Data) => dat.getSectionField(field.substring(1)))]
+				.reduce((sum: any, a: any) => sum + a, 0);
+			return Number(sumOf.toFixed(2));
 		}
 		case "COUNT": {
-			return new Set([...value.map((o: {[x: string]: any;}) => o[field])]).size;
+			return new Set([...value.map((dat: Data) => dat.getSectionField(field.substring(1)))]).size;
 		}
 		default: {
 			throw new InsightError("Invalid apply rule");
