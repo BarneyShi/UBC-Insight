@@ -1,0 +1,49 @@
+{
+	"title": "more intensive sum query on courses",
+	"input": {
+		"WHERE": {
+			"OR": [
+				{
+					"AND": [
+						{
+							"GT": {
+								"courses_avg": 90
+							}
+						},
+						{
+							"IS": {
+								"courses_dept": "adhe"
+							}
+						}
+					]
+				},
+				{
+					"EQ": {
+						"courses_avg": 95
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"courses_dept",
+				"maxSeats"
+			],
+			"ORDER": "courses_dept"
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"courses_dept"
+			],
+			"APPLY": [
+				{
+					"maxSeats": {
+						"SUM": "courses_avg"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [{"courses_dept":"adhe","maxSeats":1370.83},{"courses_dept":"bmeg","maxSeats":190},{"courses_dept":"cnps","maxSeats":190},{"courses_dept":"cpsc","maxSeats":190},{"courses_dept":"crwr","maxSeats":665},{"courses_dept":"econ","maxSeats":190},{"courses_dept":"edcp","maxSeats":190},{"courses_dept":"epse","maxSeats":285},{"courses_dept":"kin","maxSeats":285},{"courses_dept":"math","maxSeats":190},{"courses_dept":"mtrl","maxSeats":285},{"courses_dept":"musc","maxSeats":570},{"courses_dept":"nurs","maxSeats":190},{"courses_dept":"obst","maxSeats":95},{"courses_dept":"psyc","maxSeats":190},{"courses_dept":"rhsc","maxSeats":95},{"courses_dept":"sowk","maxSeats":95}]
+}

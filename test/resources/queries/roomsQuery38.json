@@ -1,0 +1,49 @@
+{
+	"title": "put uuid in sum",
+	"input": {
+		"WHERE": {
+			"OR": [
+				{
+					"AND": [
+						{
+							"GT": {
+								"courses_avg": 50
+							}
+						},
+						{
+							"IS": {
+								"courses_dept": "adhe"
+							}
+						}
+					]
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"courses_instructor",
+				"sumOfYears"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"sumOfYears"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"courses_instructor"
+			],
+			"APPLY": [
+				{
+					"sumOfYears": {
+						"SUM": "courses_uuid"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

@@ -1,0 +1,47 @@
+{
+	"title": "more intensive sum query for rooms",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"rooms_furniture": "*Tables*"
+					}
+				},
+				{
+					"GT": {
+						"rooms_seats": 100
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_shortname",
+				"rooms_furniture",
+				"maxSeats"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"maxSeats"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"rooms_shortname",
+				"rooms_furniture"
+			],
+			"APPLY": [
+				{
+					"maxSeats": {
+						"SUM": "rooms_seats"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [{"rooms_shortname":"SRC","rooms_furniture":"Classroom-Movable Tables & Chairs","maxSeats":897},{"rooms_shortname":"LSC","rooms_furniture":"Classroom-Fixed Tables/Movable Chairs","maxSeats":825},{"rooms_shortname":"SWNG","rooms_furniture":"Classroom-Fixed Tables/Movable Chairs","maxSeats":755},{"rooms_shortname":"OSBO","rooms_furniture":"Classroom-Movable Tables & Chairs","maxSeats":442},{"rooms_shortname":"PHRM","rooms_furniture":"Classroom-Fixed Tables/Movable Chairs","maxSeats":403},{"rooms_shortname":"LSK","rooms_furniture":"Classroom-Fixed Tables/Fixed Chairs","maxSeats":388},{"rooms_shortname":"HEBB","rooms_furniture":"Classroom-Fixed Tables/Fixed Chairs","maxSeats":375},{"rooms_shortname":"WOOD","rooms_furniture":"Classroom-Fixed Tables/Movable Chairs","maxSeats":360},{"rooms_shortname":"DMP","rooms_furniture":"Classroom-Fixed Tables/Movable Chairs","maxSeats":280},{"rooms_shortname":"ANGU","rooms_furniture":"Classroom-Fixed Tables/Movable Chairs","maxSeats":260},{"rooms_shortname":"MCLD","rooms_furniture":"Classroom-Fixed Tables/Fixed Chairs","maxSeats":259},{"rooms_shortname":"BUCH","rooms_furniture":"Classroom-Fixed Tables/Fixed Chairs","maxSeats":216},{"rooms_shortname":"CHBE","rooms_furniture":"Classroom-Fixed Tables/Movable Chairs","maxSeats":200},{"rooms_shortname":"FRDM","rooms_furniture":"Classroom-Fixed Tables/Movable Chairs","maxSeats":160},{"rooms_shortname":"IBLC","rooms_furniture":"Classroom-Fixed Tables/Fixed Chairs","maxSeats":154},{"rooms_shortname":"IBLC","rooms_furniture":"Classroom-Movable Tables & Chairs","maxSeats":112}]
+}

@@ -1,0 +1,74 @@
+{
+	"title": "complex query with aggregation on instructors",
+	"input": {
+		"WHERE": {
+			"OR": [
+				{
+					"AND": [
+						{
+							"GT": {
+								"courses_avg": 50
+							}
+						},
+						{
+							"IS": {
+								"courses_dept": "adhe"
+							}
+						}
+					]
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"courses_instructor",
+				"average",
+				"taught",
+				"maxFail",
+				"minPass",
+				"sumOfYears"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"taught",
+					"average"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"courses_instructor"
+			],
+			"APPLY": [
+				{
+					"average": {
+						"AVG": "courses_avg"
+					}
+				},
+				{
+					"taught": {
+						"COUNT": "courses_avg"
+					}
+				},
+				{
+					"maxFail": {
+						"MAX": "courses_fail"
+					}
+				},
+				{
+					"minPass": {
+						"MIN": "courses_pass"
+					}
+				},
+				{
+					"sumOfYears": {
+						"SUM": "courses_year"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [{"courses_instructor":"","average":83.19,"taught":74,"maxFail":5,"minPass":7,"sumOfYears":143472},{"courses_instructor":"bishundayal, deonarine","average":86.47,"taught":46,"maxFail":3,"minPass":11,"sumOfYears":94621},{"courses_instructor":"smulders, dave","average":82.92,"taught":38,"maxFail":3,"minPass":15,"sumOfYears":78479},{"courses_instructor":"palacios, carolina","average":76.15,"taught":32,"maxFail":3,"minPass":15,"sumOfYears":66446},{"courses_instructor":"falk, clifford","average":87.18,"taught":8,"maxFail":1,"minPass":9,"sumOfYears":16073},{"courses_instructor":"walker, judith","average":83.4,"taught":8,"maxFail":2,"minPass":21,"sumOfYears":16100},{"courses_instructor":"crisfield, erin","average":82.38,"taught":7,"maxFail":2,"minPass":10,"sumOfYears":14055},{"courses_instructor":"regmi, kapil","average":89.01,"taught":3,"maxFail":0,"minPass":31,"sumOfYears":6044},{"courses_instructor":"vanwynsberghe, robert","average":84.45,"taught":3,"maxFail":1,"minPass":19,"sumOfYears":6045},{"courses_instructor":"wilson, mary","average":84.52,"taught":2,"maxFail":1,"minPass":18,"sumOfYears":4014},{"courses_instructor":"chan, jennifer","average":78.5,"taught":2,"maxFail":1,"minPass":31,"sumOfYears":4029},{"courses_instructor":"butterwick, shauna;jubas, kaela","average":77.03,"taught":2,"maxFail":0,"minPass":9,"sumOfYears":4014},{"courses_instructor":"palacios, carolina;sork, thomas joda","average":85.58,"taught":1,"maxFail":0,"minPass":12,"sumOfYears":2007},{"courses_instructor":"aijazi, omer","average":85.03,"taught":1,"maxFail":0,"minPass":36,"sumOfYears":2015},{"courses_instructor":"elfert, maren","average":79.33,"taught":1,"maxFail":0,"minPass":33,"sumOfYears":2016}]
+	}
