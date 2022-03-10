@@ -122,7 +122,7 @@ function findRooms(nodes: {[key: string]: any}, zips: JSZip): Promise<Room[]> {
 		const promise = findRoomDetail(href, zips).then((roomDetails: any) => {
 			if (roomDetails.length !== 0) {
 				const coordPromise = findRoomCoords(address).then((coords) => {
-					if (!coords["error"]) {
+					if (!coords["error"] && Object.keys(coords).length !== 0) {
 						for (const room of roomDetails) {
 							const newRoom = new Room(
 								fullName,
