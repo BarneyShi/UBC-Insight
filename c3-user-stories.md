@@ -27,14 +27,32 @@ Then:
   - Its copy will also by deleted from the server.
 
 ## User Story 2
-As a \<role\>, I want to \<goal\>, so that \<benefit\>.
+As a student, I want to query courses in a particular department that have a minimum course average and order
+by course average, so that I can know which courses to take to potentially boost my GPA.
 
 
 #### Definitions of Done(s)
-Scenario 1: \<The name for the behaviour that will be described\>  
-Given: \<Some initial application state (precondition)\>  
-When: \<The user do some series of action\>  
-Then: \<Some outcome state is expected (post-condition)\>
+Scenario 1: The result of the query has too many courses.
+Given: The website has a courses dataset.
+When: The user enters a query which is too broad.
+Then: There will be a prompt saying "Query has too many courses. Try narrowing your search."
+
+Scenario 2: The result of the query is valid.
+Given: The website has a courses dataset.
+When: The user enters a valid query with a valid result.
+Then: Courses will be displayed with required fields (given by COLUMNS in the query), and are scrollable.
+
+Scenario 3: The query is invalid.
+Given: The website has a courses dataset.
+When: The user enters an invalid query.
+Then: There will be a prompt saying "Your query is invalid. Please double check your input."
+
+Scenario 4: The result of the query is empty.
+Given: The website has a courses dataset.
+When: The user enters a valid query with an empty result.
+Then: There will be a prompt saying "There are no courses that meet your requirements. Try broadening your search."
+
+
 
 ## Others
 You may provide any additional user stories + DoDs in this section for general TA feedback.  
