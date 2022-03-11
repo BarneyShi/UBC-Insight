@@ -2,29 +2,40 @@ Please edit this template and commit to the master branch for your user stories 
 Make sure to follow the *Role, Goal, Benefit* framework for the user stories and the *Given/When/Then* framework for the Definitions of Done! You can also refer to the examples DoDs in [C3 spec](https://sites.google.com/view/ubc-cpsc310-21w2-intro-to-se/project/checkpoint-3).
 
 ## User Story 1
-As a user, I want to upload and delete datasets and so that I can select one and query it.
+As a user, I want to add datasets by uploading zip files from the local machine, and display the uploaded datasets in a HTML table with ID's, Kind's, so that I can know which dataset I can make queries to.
 
 
 #### Definitions of Done(s)
-Scenario 1: Upload a local zip file containing datasets
-Given: The website doesn't have any datasets  
-When: Users select a dataset and upload it.  
+Scenario 1: Upload a courses zip file with ID `courses` that has `100` valid courses.\
+Given: The website doesn't have a dataset with ID `courses`.\
+When: The User clicks on the `Upload a dataset` button\
 Then: 
-  - There will be a prompt notifying it's been uploaded. 
-  - The dataset will be saved as a copy in the server. 
-  - And there will be a table containing all uploaded datasets with rows.
+  - A file selection window pops up.
+  - The user selects the zip file from local storage, and click `Open` button.
+  - The file selection window closes.
+  - A new prompt notifies the user that the dataset with ID `courses` has been uploaded. 
+  - The dataset with ID `courses` will be saved as a copy in the server. 
+  - The dataset will be added to the table with its ID `courses`, Kind `Course` and Rows `100` data.
 
-Scenario 2: Upload a datasets that already exsits.
-Given: The website contains a datasets with the same ID.
-When: Users select a dataset and upload it.  
-Then: There will be a prompt saying it's already existed.
+Scenario 2:Upload a datasets with ID `courses` that already exsits in the table.\
+Given: The website has a dataset with ID `courses`.\
+When: The User clicks on the `Upload a dataset` button\
+Then:
+  - A file selection window pops up.
+  - The user selects the zip file from local storage, and click `Open` button.
+  - The file selection window closes.
+  - A new prompt notifies the user that the uploading failed because the dataset already exists.
+  - The dataset table stays the same.
 
-Scenario 3: Select a dataset to delete.
-Given: The website contains multiple datasets.
-When: Users select a dataset by clicking the checkbox and click on `delete` button. 
+Scenario 3: Upload a datasets with ID `rooms` with `no valid` rooms.\
+Given: The website doesn't have a Room dataset with ID `rooms`.\
+When: The User clicks on the `Upload a dataset` button\
 Then: 
-  - The dataset will be deleted from the dataset table, 
-  - Its copy will also by deleted from the server.
+  - A file selection window pops up.
+  - The user selects the zip file from local storage, and click `Open` button.
+  - The file selection window closes.
+  - A new prompt notifies the user that the uploading failed because there is `no valid` Rooms in the dataset.
+  - The dataset table stays the same.
 
 ## User Story 2
 As a student, I want to query courses in a particular department that have a minimum course average and order
