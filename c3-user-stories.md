@@ -10,7 +10,7 @@ Scenario 1: Upload a courses zip file with ID `courses` that has `100` valid cou
 Given: The website doesn't have a dataset with ID `courses`.\
 When: The User clicks on the `Upload a dataset` button\
 Then: 
-  - A file selection window will pop up.
+  - A file selection window pops up.
   - The user selects the zip file from local storage, and click `Open` button.
   - The file selection window closes.
   - A new prompt notifies the user that the dataset with ID `courses` has been uploaded. 
@@ -21,19 +21,21 @@ Scenario 2:Upload a datasets with ID `courses` that already exsits in the table.
 Given: The website has a dataset with ID `courses`.\
 When: The User clicks on the `Upload a dataset` button\
 Then:
-  - A file selection window will pop up.
+  - A file selection window pops up.
   - The user selects the zip file from local storage, and click `Open` button.
   - The file selection window closes.
-  - An prompt notifies the user that the uploading failed because the dataset already exists.
+  - A new prompt notifies the user that the uploading failed because the dataset already exists.
+  - The dataset table stays the same.
 
 Scenario 3: Upload a datasets with ID `rooms` with `no valid` rooms.\
 Given: The website doesn't have a Room dataset with ID `rooms`.\
 When: The User clicks on the `Upload a dataset` button\
 Then: 
-  - A file selection window will pop up.
+  - A file selection window pops up.
   - The user selects the zip file from local storage, and click `Open` button.
   - The file selection window closes.
-  - An prompt notifies the user that the uploading failed because there is `no valid` Rooms in the dataset.
+  - A new prompt notifies the user that the uploading failed because there is `no valid` Rooms in the dataset.
+  - The dataset table stays the same.
 
 ## User Story 2
 As a student, I want to query courses in a particular department that have a minimum course average and order
