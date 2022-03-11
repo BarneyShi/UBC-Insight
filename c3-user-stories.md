@@ -6,9 +6,9 @@ As a user, I want to add datasets by uploading zip files from the local machine,
 
 
 #### Definitions of Done(s)
-Scenario 1: Upload a courses zip file with ID `courses` that has `100` valid courses.
-Given: The website doesn't have a dataset with ID `courses`.
-When: The User clicks on the `Upload a dataset` button
+Scenario 1: Upload a courses zip file with ID `courses` that has `100` valid courses.\
+Given: The website doesn't have a dataset with ID `courses`.\
+When: The User clicks on the `Upload a dataset` button\
 Then: 
   - A file selection window will pop up.
   - The user selects the zip file from local storage, and click `Open` button.
@@ -17,9 +17,9 @@ Then:
   - The dataset with ID `courses` will be saved as a copy in the server. 
   - The dataset will be added to the table with its ID `courses`, Kind `Course` and Rows `100` data.
 
-Scenario 2:Upload a datasets with ID `courses` that already exsits in the table.
-Given: The website has a dataset with ID `courses`.
-When: The User clicks on the `Upload a dataset` button
+Scenario 2:Upload a datasets with ID `courses` that already exsits in the table.\
+Given: The website has a dataset with ID `courses`.\
+When: The User clicks on the `Upload a dataset` button\
 Then:
   - A file selection window will pop up.
   - The user selects the zip file from local storage, and click `Open` button.
@@ -27,8 +27,8 @@ Then:
   - An prompt notifies the user that the uploading failed because the dataset already exists.
 
 Scenario 3: Upload a datasets with ID `rooms` with `no valid` rooms.\
-Given: The website doesn't have a Room dataset with ID `rooms`.
-When: The User clicks on the `Upload a dataset` button 
+Given: The website doesn't have a Room dataset with ID `rooms`.\
+When: The User clicks on the `Upload a dataset` button\
 Then: 
   - A file selection window will pop up.
   - The user selects the zip file from local storage, and click `Open` button.
