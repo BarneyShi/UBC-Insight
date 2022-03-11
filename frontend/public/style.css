@@ -2,13 +2,55 @@
 	background-color: #3f51b5;
 	border: none;
 	color: white;
-	padding: 15px 32px;
+	padding: 15px 20px;
 	text-align: center;
 	text-decoration: none;
 	display: inline-block;
-	font-size: 16px;
+	font-size: 1.2rem;
+	border-radius: 5px;
 }
-
 .button:hover {
 	cursor: pointer;
+	background-color: #26306d;
+}
+header {
+	background-color: #3a58ff;
+	display: flex;
+	justify-content: center;
+	border-radius: 5px;
+	margin-bottom: 10px;
+}
+#logo {
+	border-radius: 10px;
+	height: 100px;
+}
+.container {
+	width: 99%;
+	margin: auto;
+}
+#content {
+	display: flex;
+	justify-content: space-between;
+	gap: 20px;
+}
+#upload {
+	flex-grow: 1;
+}
+#query {
+	flex-grow: 3;
+}
+#upload table{
+	margin-top: 10px;
+	width: 100%;
+	font-size: 1.1rem;
+}
+#upload table th {
+	padding: 5px 10px;
+	background-color: #ffaa3a;
+}
+#upload table td {
+	text-align: center;
+}
+#upload-input {
+	display: none;
 }
