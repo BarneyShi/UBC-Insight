@@ -119,7 +119,6 @@ export default class Server {
 		this.express.get("/datasets", async (req: any, res: any) => {
 			try {
 				const result = await this.insightFacade.listDatasets();
-				console.log("REsult returned", result);
 				res.status(200).send({result});
 			} catch (error: any) {
 				res.status(400).send({error: error.message});
