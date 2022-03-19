@@ -12,8 +12,11 @@
 
 			<div id="content">
 				<div id="upload">
-					<button id="upload-button" class="button">Upload a dataset</button>
-					<input id="upload-input" type="file" />
+					<form>
+						<input name="dataset-id" id="id-input" required placeholder="Enter ID" />
+						<input name="dataset" id="upload-input" type="file" accept=".zip" required/>
+						<button id="upload-button" class="button">Upload a dataset</button>
+					</form>
 					<table border="1">
 						<tr>
 							<th></th>
