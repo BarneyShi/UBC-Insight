@@ -125,12 +125,20 @@ export default class InsightFacade implements IInsightFacade {
 		}
 		let res: InsightDataset[] = [];
 		for (const [key, val] of this.dataset) {
-			const d: InsightDataset = {id: key, kind: InsightDatasetKind.Courses, numRows: val.length};
-			res.push(d);
+			if (fs.existsSync(`./data/${key}`)) {
+				const d: InsightDataset = {id: key, kind: InsightDatasetKind.Courses, numRows: val.length};
+				res.push(d);
+			} else {
+				this.dataset.delete(key);
+			}
 		}
 		for (const [key, val] of this.roomDataset) {
-			const d: InsightDataset = {id: key, kind: InsightDatasetKind.Rooms, numRows: val.length};
-			res.push(d);
+			if (fs.existsSync(`./data/${key}`)) {
+				const d: InsightDataset = {id: key, kind: InsightDatasetKind.Rooms, numRows: val.length};
+				res.push(d);
+			} else {
+				this.dataset.delete(key);
+			}
 		}
 		return Promise.resolve(res);
 	}
