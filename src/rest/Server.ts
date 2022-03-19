@@ -1,16 +1,21 @@
 import express, {Application, Request, Response} from "express";
 import * as http from "http";
 import cors from "cors";
+import InsightFacade from "../controller/InsightFacade";
+import {InsightDatasetKind, NotFoundError} from "../controller/IInsightFacade";
 
 export default class Server {
 	private readonly port: number;
 	private express: Application;
 	private server: http.Server | undefined;
+	private insightFacade: InsightFacade;
 
 	constructor(port: number) {
 		console.info(`Server::<init>( ${port} )`);
 		this.port = port;
 		this.express = express();
+
+		this.insightFacade = new InsightFacade();
 
 		this.registerMiddleware();
 		this.registerRoutes();
@@ -85,7 +90,41 @@ export default class Server {
 		this.express.get("/echo/:msg", Server.echo);
 
 		// TODO: your other endpoints should go here
+		this.express.put("/dataset/:id/:kind", async (req: any, res: any) => {
+			try {
+				const data = req.body;
+				const base64 = Buffer.from(data).toString("base64");
+				const id = req.params.id;
+				const kind = (req.params.kind === "rooms") ? InsightDatasetKind.Rooms : InsightDatasetKind.Courses;
+				const result = await this.insightFacade.addDataset(id, base64, kind);
+				res.status(200).send({result});
+			} catch (error: any) {
+				res.status(400).send({error: error.message});
+			}
+		});
 
+		this.express.delete("/dataset/:id", async (req: any, res: any) => {
+			try {
+				const result = await this.insightFacade.removeDataset(req.params.id);
+				res.status(200).send({result});
+			} catch (error: any) {
+				if (error instanceof NotFoundError) {
+					res.status(404).send({error: error.message});
+				} else {
+					res.status(400).send({error: error.message});
+				}
+			}
+		});
+
+		this.express.get("/datasets", async (req: any, res: any) => {
+			try {
+				const result = await this.insightFacade.listDatasets();
+				console.log("REsult returned", result);
+				res.status(200).send({result});
+			} catch (error: any) {
+				res.status(400).send({error: error.message});
+			}
+		});
 	}
 
 	// The next two methods handle the echo service.
