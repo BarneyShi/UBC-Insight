@@ -58,7 +58,6 @@ describe("Facade D3", function () {
 		// might want to add some process logging here to keep track of what"s going on
 		fs.removeSync(persistDir);
 		const datasets = await facade.listDatasets();
-		console.log("Datasets", datasets);
 		datasets.forEach((d) => facade.removeDataset(d.id));
 	});
 
@@ -154,18 +153,15 @@ describe("Facade D3", function () {
 
 	it("GET request returns 200", async function () {
 		try {
-			const add1 = await chai.request("http://localhost:4321").put("/dataset/courses/courses")
+			await chai.request("http://localhost:4321").put("/dataset/courses/courses")
 				.send(datasetContents.get("courses"))
 				.set("Content-Type", "application/x-zip-compressed");
-			console.log("Added1", add1.body);
-			const added = await chai.request("http://localhost:4321").put("/dataset/courses1/courses")
+			await chai.request("http://localhost:4321").put("/dataset/courses1/courses")
 				.send(datasetContents.get("courses"))
 				.set("Content-Type", "application/x-zip-compressed");
-			console.log("ADded", added.body);
 			const res1: ChaiHttp.Response = await chai.request("http://localhost:4321").get("/datasets");
 			expect(res1.status).to.be.equal(200);
 			expect(res1.body).to.have.property("result");
-			console.log("!!!!!", res1.body);
 			expect(res1.body.result).to.deep.equal([{id: "courses", kind: InsightDatasetKind.Courses, numRows: 64612},
 				{id: "courses1", kind: InsightDatasetKind.Courses, numRows: 64612}]);
 		} catch (error: any) {
