@@ -16,9 +16,7 @@ function initInMemoryDatasets(courseMap: Map<string, Section[]>, roomMap: Map<st
 					const data = fs.readFileSync(`./data/${id}/courses/${file}`);
 					const json = JSON.parse(data.toString());
 					const sections = setSections(json.result);
-					if (!courseMap.has(id)) {
-						courseMap.set(id, []);
-					}
+					courseMap.set(id, []);
 					courseMap.get(id)?.push(...sections);
 				});
 			} else {
@@ -28,9 +26,7 @@ function initInMemoryDatasets(courseMap: Map<string, Section[]>, roomMap: Map<st
 					const data = fs.readFileSync(`./data/${id}/${file}`);
 					const json = JSON.parse(data.toString());
 					const room: Room = setRoom(json);
-					if (!roomMap.has(id)) {
-						roomMap.set(id, []);
-					}
+					roomMap.set(id, []);
 					roomMap.get(id)?.push(room);
 				});
 			}
