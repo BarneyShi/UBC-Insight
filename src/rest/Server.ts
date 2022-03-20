@@ -3,6 +3,7 @@ import * as http from "http";
 import cors from "cors";
 import InsightFacade from "../controller/InsightFacade";
 import {InsightDatasetKind, NotFoundError} from "../controller/IInsightFacade";
+import {initInMemoryDatasets} from "../controller/initDatasetUtil";
 
 export default class Server {
 	private readonly port: number;
@@ -34,6 +35,8 @@ export default class Server {
 	 * @returns {Promise<void>}
 	 */
 	public start(): Promise<void> {
+		// Init in memory dataset in case the server got shut down unexpectedly.
+		initInMemoryDatasets(this.insightFacade.dataset, this.insightFacade.roomDataset);
 		return new Promise((resolve, reject) => {
 			console.info("Server::start() - start");
 			if (this.server !== undefined) {
@@ -120,6 +123,14 @@ export default class Server {
 			try {
 				const result = await this.insightFacade.listDatasets();
 				res.status(200).send({result});
+			} catch (error: any) {
+				res.status(400).send({error: error.message});
+			}
+		});
+
+		this.express.post("/query", async (req: any, res: any) => {
+			try {
+				const datasets = await this.insightFacade.listDatasets();
 			} catch (error: any) {
 				res.status(400).send({error: error.message});
 			}

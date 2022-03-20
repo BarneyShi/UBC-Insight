@@ -33,7 +33,6 @@ describe("Facade D3", function () {
 			datasetContents.set(key, content);
 		}
 
-		// TODO: start server here once and handle errors properly
 		return server.start().then(() => {
 			console.log("Server tests start successfully!");
 		}).catch((err: Error) => {
@@ -42,7 +41,8 @@ describe("Facade D3", function () {
 	});
 
 	after(function () {
-		// TODO: stop server here once!
+		// Clean persistDir once.
+		fs.removeSync(persistDir);
 		return server.stop().then(() => {
 			console.log("Server tests has stopped!");
 		}).catch((err: Error) => {
@@ -56,30 +56,33 @@ describe("Facade D3", function () {
 
 	afterEach(async function () {
 		// might want to add some process logging here to keep track of what"s going on
-		fs.removeSync(persistDir);
-		const datasets = await facade.listDatasets();
-		datasets.forEach((d) => facade.removeDataset(d.id));
 	});
 
-	it("PUT test for courses dataset", function () {
+	it("PUT test for courses dataset", async function () {
 		try {
-			return chai.request("http://localhost:4321")
-				.put("/dataset/123/courses")
+			const res: ChaiHttp.Response = await chai.request("http://localhost:4321").put("/dataset/courses/courses")
 				.send(datasetContents.get("courses"))
-				.set("Content-Type", "application/x-zip-compressed")
-				.then(function (res: ChaiHttp.Response) {
-					// some logging here please!
-					expect(res.status).to.be.equal(200);
-					expect(res.body).to.have.property("result");
-					expect(res.body.result).to.be.deep.equal(["123"]);
-					console.log("Courses dataset with id courses added!");
-				})
-				.catch(function (err) {
-					// some logging here please!
-					expect.fail(`Should have resolved with 200 status code: ${err.message}`);
-				});
+				.set("Content-Type", "application/x-zip-compressed");
+			expect(res.status).to.be.equal(200);
+			expect(res.body).to.have.property("result");
+			expect(res.body.result).to.be.deep.equal(["courses"]);
+			console.log("Courses dataset with id courses added!");
 		} catch (err: any) {
 			// and some more logging here!
+			expect.fail(`Should have resolved with 200 status code: ${err.message}`);
+		}
+	});
+
+	it("PUT test for room dataset", async function () {
+		try {
+			const res: ChaiHttp.Response = await chai.request("http://localhost:4321").put("/dataset/rooms/rooms")
+				.send(datasetContents.get("rooms"))
+				.set("Content-Type", "application/x-zip-compressed");
+			expect(res.status).to.be.equal(200);
+			expect(res.body).to.have.property("result");
+			expect(res.body.result).to.be.deep.members(["rooms", "courses"]);
+			console.log("Rooms dataset with id rooms added!");
+		} catch (err: any) {
 			expect.fail(`Should have resolved with 200 status code: ${err.message}`);
 		}
 	});
@@ -105,30 +108,11 @@ describe("Facade D3", function () {
 		}
 	});
 
-	it("DELETE request returns 200", function () {
+	it("DELETE request returns 200", async function () {
 		try {
-			return chai.request("http://localhost:4321")
-				.put("/dataset/courses/courses")
-				.send(datasetContents.get("courses"))
-				.set("Content-Type", "application/x-zip-compressed")
-				.then(function (res: ChaiHttp.Response) {
-					expect(res.status).to.be.equal(200);
-					console.log("Add a dataset for DELETE later");
-					return chai.request("http://localhost:4321")
-						.delete("/dataset/courses")
-						.then(function (DeleteRes: ChaiHttp.Response) {
-							expect(DeleteRes.status).to.be.equal(200);
-							expect(DeleteRes.body).to.have.property("result");
-							console.log("Courses dataset deleted!");
-						})
-						.catch(function (err) {
-							expect.fail("Shouldn't have failed to delete courses: ", err.message);
-						});
-				})
-				.catch(function (err) {
-					// some logging here please!
-					expect.fail(`Shouldn't have rejected with 400 status code: ${err.message}`);
-				});
+			const res = await chai.request("http://localhost:4321").delete("/dataset/courses");
+			expect(res.status).to.be.equal(200);
+			expect(res.body).to.have.property("result");
 		} catch (error: any) {
 			expect.fail(`Shouldn't have rejected with 400 status code: ${error.message}`);
 		}
@@ -153,17 +137,10 @@ describe("Facade D3", function () {
 
 	it("GET request returns 200", async function () {
 		try {
-			await chai.request("http://localhost:4321").put("/dataset/courses/courses")
-				.send(datasetContents.get("courses"))
-				.set("Content-Type", "application/x-zip-compressed");
-			await chai.request("http://localhost:4321").put("/dataset/courses1/courses")
-				.send(datasetContents.get("courses"))
-				.set("Content-Type", "application/x-zip-compressed");
 			const res1: ChaiHttp.Response = await chai.request("http://localhost:4321").get("/datasets");
-			expect(res1.status).to.be.equal(200);
 			expect(res1.body).to.have.property("result");
-			expect(res1.body.result).to.deep.equal([{id: "courses", kind: InsightDatasetKind.Courses, numRows: 64612},
-				{id: "courses1", kind: InsightDatasetKind.Courses, numRows: 64612}]);
+			expect(res1.body.result).to.deep.members([{id: "rooms", kind: InsightDatasetKind.Rooms, numRows: 364}]);
+			expect(res1.status).to.be.equal(200);
 		} catch (error: any) {
 			expect.fail(`Shouldn't have failed: ${error.message}`);
 		}
