@@ -2,7 +2,7 @@ import express, {Application, Request, Response} from "express";
 import * as http from "http";
 import cors from "cors";
 import InsightFacade from "../controller/InsightFacade";
-import {InsightDatasetKind, NotFoundError} from "../controller/IInsightFacade";
+import {InsightDatasetKind, InsightResult, NotFoundError} from "../controller/IInsightFacade";
 import {initInMemoryDatasets} from "../controller/initDatasetUtil";
 
 export default class Server {
@@ -130,7 +130,9 @@ export default class Server {
 
 		this.express.post("/query", async (req: any, res: any) => {
 			try {
-				const datasets = await this.insightFacade.listDatasets();
+				const json = req.body;
+				const result: InsightResult[] = await this.insightFacade.performQuery(json);
+				res.status(200).send({result});
 			} catch (error: any) {
 				res.status(400).send({error: error.message});
 			}
