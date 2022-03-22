@@ -9,6 +9,7 @@ import Room from "../model/Room";
 async function addCourses(id: string, zips: JSZip, dataset: Map<string, Section[]>): Promise<string[]> {
 	// Check if root dir has 'courses/'
 	if (!zips.files["courses/"]) {
+		dataset.delete(id);
 		throw new InsightError("Root dir doesn't have a courses/ folder.");
 	}
 	// Add dataset to Map() and /data folder.
@@ -39,6 +40,7 @@ async function addCourses(id: string, zips: JSZip, dataset: Map<string, Section[
 		}
 		if (dataset.get(id)?.length === 0) {
 			dataset.delete(id);
+			cleanEmptyDatasetFolder(id);
 			throw new InsightError("No valid sections in dataset!");
 		}
 		return ids;
@@ -47,6 +49,7 @@ async function addCourses(id: string, zips: JSZip, dataset: Map<string, Section[
 
 async function addRooms(id: string, zips: JSZip, dataset: Map<string, Room[]>): Promise<string[]> {
 	if (!zips.files["rooms/"] || !zips.files["rooms/index.htm"]) {
+		dataset.delete(id);
 		throw new InsightError("Zip doesn't have rooms/ or index.htm file.");
 	}
 	dataset.set(id, []);
@@ -76,11 +79,13 @@ async function addRooms(id: string, zips: JSZip, dataset: Map<string, Room[]>): 
 		}
 		if (dataset.get(id)?.length === 0) {
 			dataset.delete(id);
+			cleanEmptyDatasetFolder(id);
 			throw new InsightError("No valid sections in dataset!");
 		}
 		return ids;
 	});
 }
+
 function setSections(sections: Array<{[key: string]: any}>): Section[] {
 	let ans: Section[] = [];
 	sections.forEach((e: any) => {
@@ -274,5 +279,13 @@ function tidyOutput(str: string): string {
 	str = str.trim();
 	str = str.replace(/(\s)+/g, " ");
 	return str;
+}
+
+// Remove the dataset folder if it doesn't have any valid course
+function cleanEmptyDatasetFolder(id: string): void {
+	// Reference: https://stackoverflow.com/a/63174339/9497206
+	if (fs.pathExistsSync(`./data/${id}`)) {
+		fs.rmdirSync(`./data/${id}`);
+	}
 }
 export {addCourses, addRooms, setSections};

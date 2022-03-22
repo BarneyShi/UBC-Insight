@@ -21,8 +21,8 @@ import {handleApply, handleColumns, handleGroup, handleOrder, handleWhereOperati
  *
  */
 export default class InsightFacade implements IInsightFacade {
-	private dataset: Map<string, Section[]>;
-	private roomDataset: Map<string, Room[]>;
+	public dataset: Map<string, Section[]>;
+	public roomDataset: Map<string, Room[]>;
 
 	constructor() {
 		// TODO change name to courseDataset
@@ -124,13 +124,24 @@ export default class InsightFacade implements IInsightFacade {
 			return Promise.resolve([]);
 		}
 		let res: InsightDataset[] = [];
+		// Reference: https://stackoverflow.com/questions/18112204/get-all-directories-within-directory-nodejs
+		// const persistedDatasets = fs.readdirSync("./data", {withFileTypes: true}).filter((dir) => dir.isDirectory())
+		// 	.map((dir) => dir.name);
 		for (const [key, val] of this.dataset) {
+			// if (persistedDatasets.includes(key)) {
 			const d: InsightDataset = {id: key, kind: InsightDatasetKind.Courses, numRows: val.length};
 			res.push(d);
+			// } else {
+			// 	this.dataset.delete(key);
+			// }
 		}
 		for (const [key, val] of this.roomDataset) {
+			// if (persistedDatasets.includes(key)) {
 			const d: InsightDataset = {id: key, kind: InsightDatasetKind.Rooms, numRows: val.length};
 			res.push(d);
+			// } else {
+			// 	this.dataset.delete(key);
+			// }
 		}
 		return Promise.resolve(res);
 	}

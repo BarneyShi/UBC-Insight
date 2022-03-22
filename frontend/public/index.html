@@ -6,8 +6,38 @@
 		<link href="/style.css" rel="stylesheet" />
 	</head>
 	<body>
-		<button id="click-me-button" class="button" >Click Me!</button>
+		<div class="container">
+			<header><img id="logo" src="/assets/logo.png" alt="logo"></header>
+			<p style="text-align: right; font-weight: bold;">Group528: Navid Samiei, Barney Shi</p>
 
+			<div id="content">
+				<div id="upload">
+					<form>
+						<input name="dataset-id" id="id-input" required placeholder="Enter ID" />
+						<input name="dataset" id="upload-input" type="file" accept=".zip" required/>
+						<button id="upload-button" class="button">Upload a dataset</button>
+					</form>
+					<table border="1">
+						<tr>
+							<th></th>
+							<th>ID</th>
+							<th>Kind</th>
+							<th>Rows</th>
+						</tr>
+						<tr>
+							<td><input type="checkbox" /></td>
+							<td>courses</td>
+							<td>Course</td>
+							<td>123</td>
+						</tr>
+					</table>
+				</div>
+				<div id="query">
+					<h1>Perform Query Section</h1>
+					<button id="click-me-button" class="button" >Query</button>
+				</div>
+			</div>
+		</div>
 		<script type="text/javascript" src="/frontend.js"></script>
 	</body>
 </html>
