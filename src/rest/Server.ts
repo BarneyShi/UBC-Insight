@@ -92,7 +92,6 @@ export default class Server {
 		// http://localhost:4321/echo/hello
 		this.express.get("/echo/:msg", Server.echo);
 
-		// TODO: your other endpoints should go here
 		this.express.put("/dataset/:id/:kind", async (req: any, res: any) => {
 			try {
 				const data = req.body;
@@ -101,15 +100,17 @@ export default class Server {
 				const kind = (req.params.kind === "rooms") ? InsightDatasetKind.Rooms : InsightDatasetKind.Courses;
 				const result = await this.insightFacade.addDataset(id, base64, kind);
 				res.status(200).send({result});
+				console.log(`Add new ${kind} dataset ${id}`);
 			} catch (error: any) {
+				console.log(`Add dataset error: ${error.message}`);
 				res.status(400).send({error: error.message});
 			}
 		});
-
 		this.express.delete("/dataset/:id", async (req: any, res: any) => {
 			try {
 				const result = await this.insightFacade.removeDataset(req.params.id);
 				res.status(200).send({result});
+				console.log(`Delete dataset ${req.params.id}`);
 			} catch (error: any) {
 				if (error instanceof NotFoundError) {
 					res.status(404).send({error: error.message});
@@ -118,21 +119,21 @@ export default class Server {
 				}
 			}
 		});
-
 		this.express.get("/datasets", async (req: any, res: any) => {
 			try {
 				const result = await this.insightFacade.listDatasets();
 				res.status(200).send({result});
+				console.log("List all datasets");
 			} catch (error: any) {
 				res.status(400).send({error: error.message});
 			}
 		});
-
 		this.express.post("/query", async (req: any, res: any) => {
 			try {
 				const json = req.body;
 				const result: InsightResult[] = await this.insightFacade.performQuery(json);
 				res.status(200).send({result});
+				console.log("Query");
 			} catch (error: any) {
 				res.status(400).send({error: error.message});
 			}

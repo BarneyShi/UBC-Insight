@@ -34,10 +34,13 @@ header {
 	gap: 20px;
 }
 #upload {
-	flex-grow: 1;
+	/* flex-grow: 1; */
+}
+#upload-button {
+	width: 150px;
 }
 #query {
-	flex-grow: 3;
+	flex-grow: 2;
 }
 #upload table{
 	margin-top: 10px;
@@ -51,6 +54,13 @@ header {
 #upload table td {
 	text-align: center;
 }
-/* #upload-input {
-	display: none;
-} */
+.delete-button {
+	background-color: red;
+	color: white;
+	border: 0.5px solid grey;
+	border-radius: 5px;
+}
+.delete-button:hover {
+	background-color: rgb(145, 50, 50);
+	cursor: pointer;
+}

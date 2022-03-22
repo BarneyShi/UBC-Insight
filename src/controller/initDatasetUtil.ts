@@ -12,21 +12,21 @@ function initInMemoryDatasets(courseMap: Map<string, Section[]>, roomMap: Map<st
 			if (fs.pathExistsSync(`./data/${id}/courses`)) {
 				// Reference: https://stackoverflow.com/questions/61645720/read-all-json-files-contained-in-a-dynamically-updated-folder
 				const files = fs.readdirSync(`./data/${id}/courses`);
+				courseMap.set(id, []);
 				files.forEach((file) => {
 					const data = fs.readFileSync(`./data/${id}/courses/${file}`);
 					const json = JSON.parse(data.toString());
 					const sections = setSections(json.result);
-					courseMap.set(id, []);
 					courseMap.get(id)?.push(...sections);
 				});
 			} else {
 				// Reference: https://stackoverflow.com/questions/61645720/read-all-json-files-contained-in-a-dynamically-updated-folder
 				const files = fs.readdirSync(`./data/${id}`);
+				roomMap.set(id, []);
 				files.forEach((file) => {
 					const data = fs.readFileSync(`./data/${id}/${file}`);
 					const json = JSON.parse(data.toString());
 					const room: Room = setRoom(json);
-					roomMap.set(id, []);
 					roomMap.get(id)?.push(room);
 				});
 			}
