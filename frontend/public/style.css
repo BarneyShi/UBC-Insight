@@ -36,6 +36,9 @@ header {
 #upload {
 	/* flex-grow: 1; */
 }
+#upload-button {
+	width: 150px;
+}
 #query {
 	flex-grow: 2;
 }
@@ -51,6 +54,13 @@ header {
 #upload table td {
 	text-align: center;
 }
-/* #upload-input {
-	display: none;
-} */
+.delete-button {
+	background-color: red;
+	color: white;
+	border: 0.5px solid grey;
+	border-radius: 5px;
+}
+.delete-button:hover {
+	background-color: rgb(145, 50, 50);
+	cursor: pointer;
+}
