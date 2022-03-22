@@ -34,10 +34,10 @@ header {
 	gap: 20px;
 }
 #upload {
-	flex-grow: 1;
+	/* flex-grow: 1; */
 }
 #query {
-	flex-grow: 3;
+	flex-grow: 2;
 }
 #upload table{
 	margin-top: 10px;

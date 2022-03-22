@@ -12,12 +12,16 @@
 
 			<div id="content">
 				<div id="upload">
-					<form>
-						<input name="dataset-id" id="id-input" required placeholder="Enter ID" />
+					<form id="addDataset-form">
+						<input name="dataset-kind" id="courses-kind" type="radio" value="Courses" />
+						<label for="kind-input">Courses</label>
+						<input name="dataset-kind" id="rooms-kind" type="radio" value="Rooms" />
+						<label for="kind-input">Rooms</label>
+						<input name="dataset-id" id="id-input" type="text" required placeholder="Enter ID" />
 						<input name="dataset" id="upload-input" type="file" accept=".zip" required/>
-						<button id="upload-button" class="button">Upload a dataset</button>
+						<button type="submit" id="upload-button" class="button">Upload a dataset</button>
 					</form>
-					<table border="1">
+					<table id="dataset-table" border="1">
 						<tr>
 							<th></th>
 							<th>ID</th>
