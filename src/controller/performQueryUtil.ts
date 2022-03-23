@@ -72,10 +72,10 @@ function handleOrder(options: {[p: string]: any}, order: any, columns: any, ret:
 			if (!(keys.every((val) => columns.includes(val)))) {
 				throw new InsightError("order keys not in columns");
 			}
+			// todo: change to recursive sorting function
 			if (dir === "UP") {
 				for (let kee of keys.reverse()) {
 					// source:https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
-
 					ret.sort((a, b) => (a[kee] > b[kee]) ? 1 : ((b[kee] > a[kee]) ? -1 : 0));
 				}
 			} else if (dir === "DOWN") {
@@ -138,6 +138,9 @@ function handleApply(apply: any[] | {[p: string]: any}, groupedData: Data, group
 	// check for duplicates
 	// source: https://stackoverflow.com/questions/7376598/in-javascript-how-do-i-check-if-an-array-has-duplicate-values
 	let applyKeys = [...apply.map((o: {[x: string]: any;}) => Object.keys(o)[0])];
+	if (applyKeys.some((val) => val.includes("_") || val === "")) {
+		throw new InsightError("applykey is incorrect");
+	}
 	if (new Set(applyKeys).size !== applyKeys.length) {
 		throw new InsightError("Duplicate apply keys");
 	}
