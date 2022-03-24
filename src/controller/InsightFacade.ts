@@ -13,7 +13,6 @@ import * as fs from "fs-extra";
 import Room from "../model/Room";
 import {addCourses, addRooms} from "./addDatasetUtil";
 import {Data} from "../model/Data";
-import Decimal from "decimal.js";
 import {handleApply, handleColumns, handleGroup, handleOrder, handleWhereOperation} from "./performQueryUtil";
 /**
  * This is the main programmatic entry point for the project.

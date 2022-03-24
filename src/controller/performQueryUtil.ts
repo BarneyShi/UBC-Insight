@@ -72,16 +72,10 @@ function handleOrder(options: {[p: string]: any}, order: any, columns: any, ret:
 			if (!(keys.every((val) => columns.includes(val)))) {
 				throw new InsightError("order keys not in columns");
 			}
-			// todo: change to recursive sorting function
 			if (dir === "UP") {
-				for (let kee of keys.reverse()) {
-					// source:https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
-					ret.sort((a, b) => (a[kee] > b[kee]) ? 1 : ((b[kee] > a[kee]) ? -1 : 0));
-				}
+				ret.sort(orderCmpFnUp(keys));
 			} else if (dir === "DOWN") {
-				for (let kee of keys.reverse()) {
-					ret.sort((a, b) => (a[kee] < b[kee]) ? 1 : ((b[kee] < a[kee]) ? -1 : 0));
-				}
+				ret.sort(orderCmpFnDown(keys));
 			} else {
 				throw new InsightError("incorrect direction");
 			}
@@ -93,6 +87,39 @@ function handleOrder(options: {[p: string]: any}, order: any, columns: any, ret:
 	} else if (Object.keys(options).length > 1) {
 		throw new InsightError("Invalid keys in options");
 	}
+}
+
+// source: https://stackoverflow.com/questions/13211709/javascript-sort-array-by-multiple-number-fields?noredirect=1&lq=1
+function orderCmpFnUp(keys: string | any[]): (a: InsightResult, b: InsightResult) => (number | any) {
+	return (a, b) => {
+		if (keys.length === 0) {
+			return 0;
+		}
+		let key = keys[0];
+		if (a[key] < b[key]) {
+			return -1;
+		} else if (a[key] > b[key]) {
+			return 1;
+		} else {
+			return orderCmpFnUp(keys.slice(1))(a, b);
+		}
+	};
+}
+
+function orderCmpFnDown(keys: string | any[]): (a: InsightResult, b: InsightResult) => (number | any) {
+	return (a, b) => {
+		if (keys.length === 0) {
+			return 0;
+		}
+		let key = keys[0];
+		if (a[key] > b[key]) {
+			return -1;
+		} else if (a[key] < b[key]) {
+			return 1;
+		} else {
+			return orderCmpFnDown(keys.slice(1))(a, b);
+		}
+	};
 }
 
 function handleColumns<S, U, This, A, D>(
@@ -186,41 +213,45 @@ function handleApplyOp(obj: object, value: any, idstring: string): string | numb
 	if (Object.keys(inobj).length !== 1) {
 		throw new InsightError("apply body should have 1 key");
 	}
-	let op = Object.keys(inobj)[0];
 	let [idstr, field] = (Object.values(inobj)[0] as string).split("_");
 	if (idstr !== idstring) {
 		throw new InsightError("references multiple datasets in apply rule");
 	}
-	field = "_" + field;
-	switch (op) {
+	let numericFields = ["lat", "lon", "seats", "avg", "pass", "fail", "audit", "year"];
+	let stringFields = ["fullname", "shortname", "number",
+		"name", "address", "type", "furniture", "href", "dept", "id", "instructor", "title", "uuid"];
+	switch (Object.keys(inobj)[0]) {
 		case "MAX": {
-			if (!(value.every((dat: Data) => typeof dat.getSectionField(field.substring(1)) === "number"))) {
+			if (!numericFields.includes(field)) {
 				throw new InsightError("invalid key type in apply operation");
 			}
-			return Math.max(...value.map((dat: Data) => dat.getSectionField(field.substring(1))));
+			return Math.max(...value.map((dat: Data) => dat.getSectionField(field)));
 		}
 		case "MIN": {
-			if (!(value.every((dat: Data) => typeof dat.getSectionField(field.substring(1)) === "number"))) {
+			if (!numericFields.includes(field)) {
 				throw new InsightError("invalid key type in apply operation");
 			}
-			return Math.min(...value.map((dat: Data) => dat.getSectionField(field.substring(1))));
+			return Math.min(...value.map((dat: Data) => dat.getSectionField(field)));
 		}
 		case "AVG": {
-			if (!(value.every((dat: Data) => typeof dat.getSectionField(field.substring(1)) === "number"))) {
+			if (!numericFields.includes(field)) {
 				throw new InsightError("invalid key type in apply operation");
 			}
-			return calcAvg([...value.map((dat: Data) => dat.getSectionField(field.substring(1)))]);
+			return calcAvg([...value.map((dat: Data) => dat.getSectionField(field))]);
 		}
 		case "SUM": {
-			if (!(value.every((dat: Data) => typeof dat.getSectionField(field.substring(1)) === "number"))) {
+			if (!numericFields.includes(field)) {
 				throw new InsightError("invalid key type in apply operation");
 			}
-			let sumOf = [...value.map((dat: Data) => dat.getSectionField(field.substring(1)))]
+			let sumOf = [...value.map((dat: Data) => dat.getSectionField(field))]
 				.reduce((sum: any, a: any) => sum + a, 0);
 			return Number(sumOf.toFixed(2));
 		}
 		case "COUNT": {
-			return new Set([...value.map((dat: Data) => dat.getSectionField(field.substring(1)))]).size;
+			if (!(numericFields.includes(field) || stringFields.includes(field))) {
+				throw new InsightError("invalid key type in apply operation");
+			}
+			return new Set([...value.map((dat: Data) => dat.getSectionField(field))]).size;
 		}
 		default: {
 			throw new InsightError("Invalid apply rule");
@@ -239,33 +270,5 @@ function calcAvg(param: number[]): number {
 	return Number(avg.toFixed(2));
 }
 
-function correctType(val: string, smkey: any): number | string {
-	let field: string = smkey.split("_")[1];
-	switch (field) {
-		case "avg": {return Number(val);}
-		case "pass": {return Number(val);}
-		case "fail": {return Number(val);}
-		case "audit": {return Number(val);}
-		case "year": {return Number(val);}
-		case "dept": {return val;}
-		case "id": {return val;}
-		case "instructor": {return val;}
-		case "title": {return val;}
-		case "uuid": {return val;}
-		case "fullname": {return val;}
-		case "shortname": {return val;}
-		case "number": {return val;}
-		case "name": {return val;}
-		case "address": {return val;}
-		case "lat": {return Number(val);}
-		case "lon": {return Number(val);}
-		case "seats": {return Number(val);}
-		case "type": {return val;}
-		case "furniture": {return val;}
-		case "href": {return val;}
-		default: {throw new InsightError("Should be unreachable");}
-	}
-}
-
 export {handleWhereOperation, handleLogicComparison,
-	handleOrder, handleColumns, handleApply, handleApplyOp, handleGroup, calcAvg, correctType};
+	handleOrder, handleColumns, handleApply, handleApplyOp, handleGroup, calcAvg};
