@@ -90,35 +90,29 @@ function handleOrder(options: {[p: string]: any}, order: any, columns: any, ret:
 }
 
 // source: https://stackoverflow.com/questions/13211709/javascript-sort-array-by-multiple-number-fields?noredirect=1&lq=1
-function orderCmpFnUp(keys: string | any[]): (a: InsightResult, b: InsightResult) => (number | any) {
+function orderCmpFnUp(keys: any[]): (a: InsightResult, b: InsightResult) => number {
 	return (a, b) => {
-		if (keys.length === 0) {
-			return 0;
+		for (let key of keys) {
+			if (a[key] < b[key]) {
+				return -1;
+			} else if (a[key] > b[key]) {
+				return 1;
+			}
 		}
-		let key = keys[0];
-		if (a[key] < b[key]) {
-			return -1;
-		} else if (a[key] > b[key]) {
-			return 1;
-		} else {
-			return orderCmpFnUp(keys.slice(1))(a, b);
-		}
+		return 0;
 	};
 }
 
-function orderCmpFnDown(keys: string | any[]): (a: InsightResult, b: InsightResult) => (number | any) {
+function orderCmpFnDown(keys: any[]): (a: InsightResult, b: InsightResult) => number {
 	return (a, b) => {
-		if (keys.length === 0) {
-			return 0;
+		for (let key of keys) {
+			if (a[key] > b[key]) {
+				return -1;
+			} else if (a[key] < b[key]) {
+				return 1;
+			}
 		}
-		let key = keys[0];
-		if (a[key] > b[key]) {
-			return -1;
-		} else if (a[key] < b[key]) {
-			return 1;
-		} else {
-			return orderCmpFnDown(keys.slice(1))(a, b);
-		}
+		return 0;
 	};
 }
 
