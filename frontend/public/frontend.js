@@ -2,14 +2,14 @@ document.getElementById("click-me-button").addEventListener("click", handleClick
 document.getElementById("upload-button").addEventListener("click", handleClickUpload);
 document.getElementById("add-filter-button").addEventListener("click", handleAddFilter);
 document.getElementById("Department").addEventListener("click", boxChecked);
-document.getElementById("Number").addEventListener("click", boxChecked);
+document.getElementById("ID").addEventListener("click", boxChecked);
 document.getElementById("Average").addEventListener("click", boxChecked);
 document.getElementById("Instructor").addEventListener("click", boxChecked);
 document.getElementById("Name").addEventListener("click", boxChecked);
 document.getElementById("Passed").addEventListener("click", boxChecked);
 document.getElementById("Failed").addEventListener("click", boxChecked);
 document.getElementById("Audited").addEventListener("click", boxChecked);
-document.getElementById("ID").addEventListener("click", boxChecked);
+document.getElementById("UUID").addEventListener("click", boxChecked);
 document.getElementById("Year").addEventListener("click", boxChecked);
 window.onload = fetchAllDatasets;
 // The dataset to be queried
@@ -44,29 +44,45 @@ async function handleFieldSelection(event) {
 	await createCompOptions(selectedField, fields.nextElementSibling);
 }
 
+async function handleRemoveFilter(event) {
+	console.log("was called");
+	let previous;
+	for (let i = 0; i < 5; i++) {
+		previous = event.currentTarget.previousElementSibling;
+		previous.parentNode.removeChild(previous);
+	}
+	event.currentTarget.parentNode.removeChild(event.currentTarget);
+}
+
 async function handleAddFilter(event) {
 	let div = document.getElementById("list-of-filters");
 	let newFilter = document.createElement("div");
+	newFilter.setAttribute("style", "max-width: initial")
 	newFilter.innerHTML = `
+		</p>
 		<select name="fields" class="fields" id="fields">
 			<option value="dept">Department</option>
-			<option value="id">Number</option>
+			<option value="id">ID</option>
 			<option value="avg">Average</option>
 			<option value="instructor">Instructor</option>
 			<option value="title">Name</option>
 			<option value="pass">Num of Passed</option>
 			<option value="fail">Num of Failed</option>
 			<option value="audit">Num of Audited</option>
-			<option value="uuid">ID</option>
+			<option value="uuid">UUID</option>
 			<option value="year">Year</option>
 		</select>
 		<select id="mComparator" class="mComparator">
 			<option value="IS">Contains</option>
 		</select>
+		<br>
 		<input type="text" id="compValue" class="compValue">
+		<button id="remove-filter-button" class="filter-button">Remove filter</button>
 	`
 	div.appendChild(newFilter);
-	newFilter.firstElementChild.addEventListener("change", handleFieldSelection);
+
+	newFilter.children[1].addEventListener("change", handleFieldSelection);
+	newFilter.lastElementChild.addEventListener("click", handleRemoveFilter);
 }
 
 async function handleClickMe(event) {
@@ -105,14 +121,13 @@ async function handleClickMe(event) {
 	jsonQuery["OPTIONS"]["ORDER"] = `${selectedDataset}_${order}`;
 
 	try {
-		await queryRequest(jsonQuery);
+		await queryRequest(jsonQuery, columns);
 	} catch (e) {
-		alert("There was something wrong with your query. Try again.");
+		alert(e);
 	}
-	await createQueryTable();
 }
 
-async function queryRequest(jsonQuery) {
+async function queryRequest(jsonQuery, columns) {
 	// Reference: https://jasonwatmore.com/post/2021/09/20/fetch-http-put-request-examples
 	// const body = readZipToBuffer(file);
 	const option = {
@@ -123,7 +138,9 @@ async function queryRequest(jsonQuery) {
 	let response = await fetch(`http://localhost:4321/query`, option);
 	let result = await response.json();
 	console.log(result);
-	await createQueryTable(jsonQuery["OPTIONS"]["COLUMNS"], result["result"])
+	let div = document.getElementById("queryResults");
+	div.innerHTML = "";
+	await createQueryTable(columns, result["result"])
 }
 
 async function createCompOptions(field, mComparator) {
@@ -143,17 +160,23 @@ async function createCompOptions(field, mComparator) {
 
 async function createQueryTable(columns, result) {
 	let div = document.getElementById("queryResults");
+
 	let table = document.createElement("table");
 	table.setAttribute("border", 1);
-	div.append(table);
+
+
+
 	let header = document.createElement("thead");
 	let headerRow = document.createElement("tr");
 	header.appendChild(headerRow);
 	// header.setAttribute("header-id");
 
 	// cannot read property of undefined for columns
-	for (let c = 0; c < columns.length; c++) {
-		headerRow.insertCell(c).outerHTML = `<th>${columns[c]}</th>`;
+	for (let c of columns) {
+
+		if (c.checked) {
+			headerRow.insertCell(-1).outerHTML = `<th>${c.id}</th>`;
+		}
 	}
 	table.appendChild(header);
 
@@ -168,6 +191,7 @@ async function createQueryTable(columns, result) {
 		body.appendChild(newRow);
 	}
 	table.appendChild(body);
+	div.append(table);
 }
 
 

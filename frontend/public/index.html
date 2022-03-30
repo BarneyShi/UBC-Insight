@@ -33,33 +33,39 @@
 					</table>
 				</div>
 				<div id="query">
-					<h1>Perform Query Section</h1>
-					<button id="click-me-button" class="button" >Query</button>
-					</p>
-					<div id="list-of-filters">
+					<div style="display: flex">
+						<h1 style="width: 76%">Perform Query</h1>
+						<button id="click-me-button" class="button">Query</button>
 					</div>
-					<button id="add-filter-button" class="filter-button">Add filter</button>
-					<div id="columns">
-						<h3>Which columns to display?</h3>
-						Department <input type="checkbox" id="Department" name="dept">
-						Number <input type="checkbox" id="Number" name="id">
-						Average <input type="checkbox" id="Average" name="avg">
-						Instructor <input type="checkbox" id="Instructor" name="instructor">
-						Name <input type="checkbox" id="Name" name="title">
-						Passed <input type="checkbox" id="Passed" name="pass">
-						Failed <input type="checkbox" id="Failed" name="fail">
-						Audited <input type="checkbox" id="Audited" name="audit">
-						ID <input type="checkbox" id="ID" name="uuid">
-						Year <input type="checkbox" id="Year" name="year">
-					</div>
-					<div id="order">
-						<h3>Order by which feature?</h3>
-						<select id="select-order">
 
-						</select>
+					<div style="display: flex">
+						<div id="columns" style="width:25%">
+							<h3>Which columns to display?</h3>
+							<input type="checkbox" id="Department" name="dept">Department<br>
+							<input type="checkbox" id="ID" name="id">ID<br>
+							<input type="checkbox" id="Average" name="avg">Average<br>
+							<input type="checkbox" id="Instructor" name="instructor">Instructor<br>
+							<input type="checkbox" id="Name" name="title">Name<br>
+							<input type="checkbox" id="Passed" name="pass">Passed<br>
+							<input type="checkbox" id="Failed" name="fail">Failed<br>
+							<input type="checkbox" id="Audited" name="audit">Audited<br>
+							<input type="checkbox" id="UUID" name="uuid">UUID<br>
+							<input type="checkbox" id="Year" name="year">Year<br>
+
+						</div>
+
+						<div id="list-of-filters" style="width:45%">
+							<h3>Which filters?</h3>
+							<button id="add-filter-button" class="filter-button">Add filter</button>
+						</div>
+						<div id="order"  style="width:30%">
+							<h3>Order by which feature?</h3>
+							<select id="select-order">
+							</select>
+						</div>
+
 					</div>
-					<div id="queryResults">
-					</div>
+					<div id="queryResults"></div>
 				</div>
 			</div>
 		</div>
