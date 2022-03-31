@@ -80,7 +80,7 @@ async function addRooms(id: string, zips: JSZip, dataset: Map<string, Room[]>): 
 		if (dataset.get(id)?.length === 0) {
 			dataset.delete(id);
 			cleanEmptyDatasetFolder(id);
-			throw new InsightError("No valid sections in dataset!");
+			throw new InsightError("No valid rooms in dataset!");
 		}
 		return ids;
 	});
