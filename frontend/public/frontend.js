@@ -204,6 +204,7 @@ async function handleClickMe(event) {
 	}
 	jsonQuery["OPTIONS"]["ORDER"] = `${selectedDataset}_${order}`;
 
+	console.log(jsonQuery);
 	await queryRequest(jsonQuery, columns);
 
 }
@@ -218,8 +219,16 @@ async function queryRequest(jsonQuery, columns) {
 	}
 	let response = await fetch(`http://localhost:4321/query`, option);
 	let result = await response.json();
+	console.log(result);
 	if (!result["result"]) {
-		alert(`Failed to query dataset: ${result.error}`);
+		if (result["error"] === "result is too large") {
+			alert("Failed to query dataset\n Result is too large");
+			return;
+		} else {
+			alert("Failed to query dataset\n Invalid query");
+			return;
+		}
+
 	}
 	console.log(result);
 	let div = document.getElementById("queryResults");
