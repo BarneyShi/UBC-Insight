@@ -2,11 +2,22 @@
 	"title": "cirs query",
 	"input": {
 		"WHERE": {
-			"NOT": {
-				"IS": {
-					"rooms_fullname": "Centre for Interactive  Research on Sustainability"
+			"AND": [
+				{
+					"NOT": {
+						"IS": {
+							"rooms_fullname": "Centre for Interactive  Research on Sustainability"
+						}
+					}
+				},
+				{
+					"NOT": {
+						"IS": {
+							"rooms_fullname": "Centre for Interactive Research on Sustainability"
+						}
+					}
 				}
-			}
+			]
 		},
 		"OPTIONS": {
 			"COLUMNS": [

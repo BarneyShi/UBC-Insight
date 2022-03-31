@@ -33,8 +33,28 @@
 					</table>
 				</div>
 				<div id="query">
-					<h1>Perform Query Section</h1>
-					<button id="click-me-button" class="button" >Query</button>
+					<div style="display: flex">
+						<h1 style="width: 76%">Perform Query</h1>
+						<button id="click-me-button" class="button">Query</button>
+					</div>
+
+					<div style="display: flex">
+						<div id="columns" style="width:25%">
+							<h3>Which columns to display?</h3>
+						</div>
+
+						<div id="list-of-filters" style="width:45%">
+							<h3>Which filters?</h3>
+							<button id="add-filter-button" class="filter-button">Add filter</button>
+						</div>
+						<div id="order"  style="width:30%">
+							<h3>Order by which feature?</h3>
+							<select id="select-order">
+							</select>
+						</div>
+
+					</div>
+					<div id="queryResults"></div>
 				</div>
 			</div>
 		</div>

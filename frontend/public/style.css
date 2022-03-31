@@ -42,16 +42,16 @@ header {
 #query {
 	flex-grow: 2;
 }
-#upload table{
+table{
 	margin-top: 10px;
 	width: 100%;
 	font-size: 1.1rem;
 }
-#upload table th {
+table th {
 	padding: 5px 10px;
 	background-color: #ffaa3a;
 }
-#upload table td {
+table td {
 	text-align: center;
 }
 .delete-button {
